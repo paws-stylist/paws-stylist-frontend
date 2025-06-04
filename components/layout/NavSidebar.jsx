@@ -1,11 +1,21 @@
 "use client";
 import { navbarData } from "@/utils/constants";
 import Link from "next/link";
-import { FiX } from "react-icons/fi";
+import { FiX, FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { MdEmail, MdBusiness } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 export default function NavSidebar({ isOpen, onClose }) {
+  const [expandedItems, setExpandedItems] = useState({});
+
+  const toggleExpanded = (itemName) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [itemName]: !prev[itemName]
+    }));
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -43,16 +53,61 @@ export default function NavSidebar({ isOpen, onClose }) {
 
               {/* Navigation Links */}
               <nav className="flex-1 p-6">
-                <ul className="space-y-6">
+                <ul className="space-y-4">
                   {navbarData.map((item, index) => (
                     <li key={index}>
-                      <Link
-                        href={item.url || '#'}
-                        className="block text-xl font-light text-gray-800 hover:text-primary transition-colors"
-                        onClick={onClose}
-                      >
-                        {item.name}
-                      </Link>
+                      {item.isDropdown ? (
+                        <div>
+                          {/* Main item with toggle */}
+                          <div 
+                            className="flex items-center justify-between text-xl font-light text-gray-800 hover:text-primary transition-colors cursor-pointer py-2"
+                            onClick={() => toggleExpanded(item.name)}
+                          >
+                            <span>{item.name}</span>
+                            <motion.div
+                              animate={{ rotate: expandedItems[item.name] ? 90 : 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <FiChevronRight className="w-4 h-4" />
+                            </motion.div>
+                          </div>
+
+                          {/* Dropdown items */}
+                          <AnimatePresence>
+                            {expandedItems[item.name] && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
+                                <ul className="ml-4 mt-2 space-y-2 border-l-2 border-gray-200">
+                                  {item.dropdownItems.map((dropdownItem, dropdownIdx) => (
+                                    <li key={dropdownIdx}>
+                                      <Link
+                                        href={dropdownItem.url}
+                                        className="block pl-4 py-2 text-lg text-gray-600 hover:text-primary transition-colors"
+                                        onClick={onClose}
+                                      >
+                                        {dropdownItem.name}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ) : (
+                        <Link
+                          href={item.url || '#'}
+                          className="block text-xl font-light text-gray-800 hover:text-primary transition-colors py-2"
+                          onClick={onClose}
+                        >
+                          {item.name}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

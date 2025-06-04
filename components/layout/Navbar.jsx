@@ -1,8 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { FiSearch, FiUser, FiMenu, FiX } from 'react-icons/fi';
+import { FiSearch, FiUser, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
 import { MdMailOutline, MdEmail, MdBusiness } from "react-icons/md";
+import { motion, AnimatePresence } from "framer-motion";
 import Container from '@/components/ui/Container';
 import NavSidebar from "./NavSidebar";
 import SearchBar from "./SearchBar";
@@ -14,6 +15,7 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,6 +37,14 @@ const Navbar = () => {
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
     if (searchOpen) setSearchOpen(false);
+  };
+
+  const handleDropdownEnter = (itemName) => {
+    setActiveDropdown(itemName);
+  };
+
+  const handleDropdownLeave = () => {
+    setActiveDropdown(null);
   };
 
   return (
@@ -93,13 +103,48 @@ const Navbar = () => {
           <Container>
             <ul className="flex justify-center space-x-8 py-4">
               {navbarData.map((item, idx) => (
-                <li key={idx}>
-                  <Link 
-                    href={item.url}
-                    className="text-sm font-medium text-cream-50 hover:text-primary transition-colors"
-                  >
-                    {item.name}
-                  </Link>
+                <li 
+                  key={idx}
+                  className="relative"
+                  onMouseEnter={() => item.isDropdown && handleDropdownEnter(item.name)}
+                  onMouseLeave={() => item.isDropdown && handleDropdownLeave()}
+                >
+                  <div className="flex items-center space-x-1">
+                    <Link 
+                      href={item.url}
+                      className="text-sm font-medium text-cream-50 hover:text-primary transition-colors"
+                    >
+                      {item.name}
+                    </Link>
+                    {item.isDropdown && (
+                      <FiChevronDown className="w-3 h-3 text-cream-50" />
+                    )}
+                  </div>
+
+                  {/* Dropdown Menu */}
+                  {item.isDropdown && (
+                    <AnimatePresence>
+                      {activeDropdown === item.name && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden min-w-48 z-50"
+                        >
+                          {item.dropdownItems.map((dropdownItem, dropdownIdx) => (
+                            <Link
+                              key={dropdownIdx}
+                              href={dropdownItem.url}
+                              className="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors border-b border-gray-50 last:border-b-0"
+                            >
+                              {dropdownItem.name}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
                 </li>
               ))}
             </ul>
