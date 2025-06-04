@@ -6,37 +6,37 @@ const categories = [
   {
     id: 1,
     name: 'Food',
-    image: '/food.webp',
+    image: '/category/food.png',
   },
   {
     id: 2,
     name: 'Toys',
-    image: '/toys.webp',
+    image: '/category/toys.png',
   },
   {
     id: 3,
     name: 'Accessories',
-    image: '/accessories.webp',
+    image: '/category/accessories.png',
   },
   {
     id: 4,
     name: 'Medicine',
-    image: '/medicine.webp',
+    image: '/category/medicine.png',
   },
   {
     id: 5,
     name: 'Grooming',
-    image: '/grooming.webp',
+    image: '/category/grooming.png',
   },
   {
     id: 6,
     name: 'Supplements',
-    image: '/supplements.webp',
+    image: '/category/supplement.png',
   },
   {
     id: 7,
     name: 'Care',
-    image: '/care.webp',
+    image: '/category/care.png',
   },
 ];
 
@@ -44,7 +44,7 @@ const ProductCategories = () => {
   return (
     <section className="py-16 lg:px-32 md:px-16 px-2 bg-white">
       <Container>
-        <div className="flex flex-wrap items-center justify-center gap-8">
+        <div className="flex flex-wrap items-center justify-center gap-8 space-y-8">
           {categories.map((category, index) => (
             <motion.div
               key={category.id}
@@ -58,7 +58,7 @@ const ProductCategories = () => {
             >
               <Link href={`/products/${category.name.toLowerCase()}`} className="relative pt-[30%]">
                 {/* Image Container */}
-                <div className="absolute top-0 right-2 md:w-[85%] w-[80%] aspect-square z-20">
+                <div className="absolute -top-12 right-2 md:w-[85%] w-[80%] aspect-square z-20">
                   <motion.img
                     src={category.image}
                     alt={category.name}

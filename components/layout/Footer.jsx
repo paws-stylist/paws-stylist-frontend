@@ -1,27 +1,23 @@
 'use client'
 import { motion } from 'framer-motion';
 import { FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
+import { serviceTypes, productCategories } from '@/data/sampleData';
 import Container from '../ui/Container'
 
 const Footer = () => {
   const footerLinks = {
-    company: [
-      { name: 'About Us', href: '#' },
-      { name: 'Careers', href: '#' },
-      { name: 'Contact', href: '#' },
-      { name: 'Blog', href: '#' },
-    ],
-    services: [
-      { name: 'Grooming', href: '#' },
-      { name: 'Pet Hotel', href: '#' },
-      { name: 'Training', href: '#' },
-      { name: 'Pet Spa', href: '#' },
-    ],
+    services: serviceTypes.map(service => ({
+      name: service.name,
+      href: `/services/${service.name.toLowerCase().replace(' ', '-')}`
+    })),
+    products: productCategories.map(category => ({
+      name: category.name,
+      href: `/products/${category.name.toLowerCase()}`
+    })),
     support: [
-      { name: 'FAQs', href: '#' },
-      { name: 'Terms of Service', href: '#' },
-      { name: 'Privacy Policy', href: '#' },
-      { name: 'Shipping Policy', href: '#' },
+      { name: 'Terms of Service', href: '/terms-of-service' },
+      { name: 'Privacy Policy', href: '/privacy-policy' },
+      { name: 'Shipping Policy', href: '/shipping-policy' },
     ],
   };
 
@@ -38,13 +34,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand Section */}
           <motion.div
-            initial={{   y: 20 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="lg:col-span-2"
           >
-            <h2 className="text-2xl font-bold mb-6">PAWS</h2>
+            <img src="/logo.png" alt="PAWS" className="h-12 mb-6" />
             <p className="text-gray-400 mb-8 max-w-md">
               Providing luxury care and premium services for your beloved pets. Because they deserve nothing but the best.
             </p>
@@ -69,7 +65,7 @@ const Footer = () => {
           {Object.entries(footerLinks).map(([title, links], index) => (
             <motion.div
               key={title}
-              initial={{   y: 20 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -96,8 +92,8 @@ const Footer = () => {
         </div>
 
         {/* Newsletter Section */}
-        <motion.div
-          initial={{   y: 20 }}
+        {/* <motion.div
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
@@ -127,7 +123,7 @@ const Footer = () => {
               </motion.button>
             </div>
           </div>
-        </motion.div>
+        </motion.div> */}
 
         {/* Copyright */}
         <motion.div
@@ -135,7 +131,7 @@ const Footer = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-16 text-center text-gray-400 text-sm"
+          className="mt-16 text-center text-gray-400 text-sm border-t border-white/10 pt-8"
         >
           <p>© {new Date().getFullYear()} PAWS. All rights reserved.</p>
         </motion.div>

@@ -9,27 +9,27 @@ const featuredShops = [
     {
         id: 1,
         name: "Grooming",
-        image: "/grooming.webp"
+        image: "/shops/grooming.webp"
     },
     {
         id: 2,
         name: "Medical",
-        image: "/medical.webp"
+        image: "/shops/medical.webp"
     },
     {
         id: 3,
         name: "Boarding",
-        image: "/boarding.webp"
+        image: "/shops/boarding.webp"
     },
     {
         id: 4,
         name: "Training",
-        image: "/training.webp"
+        image: "/shops/training.webp"
     },
     {
         id: 5,
         name: "Day Care",
-        image: "/daycare.webp"
+        image: "/shops/daycare.webp"
     }
 ]
 
@@ -189,7 +189,7 @@ const Shop = () => {
           {featuredShops.map((shop, index) => (
             <motion.div 
               key={shop.id} 
-              className='group flex flex-col items-center cursor-pointer'
+              className='group flex flex-col items-center cursor-pointer md:ml-10'
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

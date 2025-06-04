@@ -1,120 +1,122 @@
-export const sampleProducts = [
+export const serviceTypes = [
   {
     id: 1,
-    name: "Royal Canin Maxi Adult",
-    detail: "Premium dry dog food specially formulated for large breed adult dogs, promoting healthy joints and maintaining ideal weight",
-    salePrice: 79.99,
-    promotionPrice: 69.99,
-    images: ["/image.png"],
-    promotion: {
-      startDate: "2024-03-01",
-      endDate: "2024-04-30",
-      price: 69.99
-    },
-    brand: "Royal Canin",
-    category: "Dog Food",
-    productCode: "RC-MAXI-15KG",
-    barcode: "8888888888888",
-    subCategory: "Dry Food",
-    productType: "Food",
-    unit: "Bag",
-    pack: 1,
-    taxRate: 5
+    name: 'Grooming',
+    image: '/services/grooming.png',
   },
   {
     id: 2,
-    name: "Furminator deShedding Tool",
-    detail: "Professional-grade grooming tool that reduces shedding by up to 90% in dogs and cats",
-    salePrice: 45.99,
-    images: ["/image.png"],
-    brand: "Furminator",
-    category: "Grooming",
-    productCode: "FUR-SHED-L",
-    barcode: "7777777777777",
-    subCategory: "Brushes",
-    productType: "Accessories",
-    unit: "Piece",
-    pack: 1,
-    taxRate: 5
+    name: 'Boarding',
+    image: '/services/boarding.png',
   },
   {
     id: 3,
-    name: "Kong Classic Dog Toy",
-    detail: "Durable natural rubber toy that can be stuffed with treats, perfect for keeping dogs mentally and physically stimulated",
-    salePrice: 14.99,
-    promotionPrice: 11.99,
-    images: ["/image.png"],
-    promotion: {
-      startDate: "2024-03-15",
-      endDate: "2024-04-15",
-      price: 11.99
-    },
-    brand: "Kong",
-    category: "Toys",
-    productCode: "KONG-CL-L",
-    barcode: "6666666666666",
-    subCategory: "Interactive Toys",
-    productType: "Toys",
-    unit: "Piece",
-    pack: 1,
-    taxRate: 5
+    name: 'Training',
+    image: '/services/training.png',
   },
   {
     id: 4,
-    name: "Frontline Plus for Dogs",
-    detail: "Monthly flea and tick prevention for dogs, kills all life stages of fleas and ticks",
-    salePrice: 39.99,
-    images: ["/image.png"],
-    brand: "Frontline",
-    category: "Healthcare",
-    productCode: "FL-PLUS-L",
-    barcode: "5555555555555",
-    subCategory: "Flea & Tick",
-    productType: "Medicine",
-    unit: "Pack",
-    pack: 3,
-    taxRate: 5
-  }
+    name: 'Daycare',
+    image: '/services/daycare.png',
+  },
+  {
+    id: 5,
+    name: 'Medical',
+    image: '/services/medical.png',
+  },
+  {
+    id: 6,
+    name: 'Consultation',
+    image: '/services/consultation.png',
+  },
+  {
+    id: 7,
+    name: 'Emergency',
+    image: '/services/emergency.png',
+  },
+  {
+    id: 8,
+    name: 'Wellness',
+    image: '/services/wellness.png',
+  },
 ];
 
-export const sampleServices = [
+export const productCategories = [
   {
     id: 1,
-    name: "Full Grooming Package",
-    detail: "Complete grooming service including bath, haircut, nail trimming, ear cleaning, and teeth brushing. Suitable for all dog breeds.",
-    price: 89.99,
-    promotionPrice: 74.99,
-    images: ["/image.png"],
-    promotion: {
-      startDate: "2024-03-01",
-      endDate: "2024-04-30",
-      price: 74.99
-    },
-    serviceType: "Grooming",
-    duration: 120
+    name: 'Food',
+    image: '/categories/food.png',
+    subCategories: [
+      { id: 11, name: 'Dry Food', slug: 'dry-food' },
+      { id: 12, name: 'Wet Food', slug: 'wet-food' },
+      { id: 13, name: 'Treats', slug: 'treats' },
+      { id: 14, name: 'Supplements', slug: 'supplements' },
+    ],
   },
   {
     id: 2,
-    name: "Veterinary Check-up",
-    detail: "Comprehensive health examination including vital signs check, physical assessment, and basic health screening.",
-    price: 129.99,
-    images: ["/image.png"],
-    serviceType: "Veterinary Care",
-    duration: 45
+    name: 'Toys',
+    image: '/categories/toys.png',
+    subCategories: [
+      { id: 21, name: 'Interactive', slug: 'interactive' },
+      { id: 22, name: 'Chew Toys', slug: 'chew-toys' },
+      { id: 23, name: 'Balls', slug: 'balls' },
+      { id: 24, name: 'Plush', slug: 'plush' },
+    ],
   },
   {
     id: 3,
-    name: "Pet Training Session",
-    detail: "One-on-one training session with our certified trainer. Perfect for addressing specific behavioral issues or basic obedience training.",
-    price: 69.99,
-    promotionPrice: 59.99,
-    images: ["/image.png"],
-    promotion: {
-      startDate: "2024-03-15",
-      endDate: "2024-05-15",
-      price: 59.99
-    },
-    serviceType: "Training",
-    duration: 60
-  }
-]; 
+    name: 'Accessories',
+    image: '/categories/accessories.png',
+    subCategories: [
+      { id: 31, name: 'Collars', slug: 'collars' },
+      { id: 32, name: 'Leashes', slug: 'leashes' },
+      { id: 33, name: 'Beds', slug: 'beds' },
+      { id: 34, name: 'Bowls', slug: 'bowls' },
+    ],
+  },
+  {
+    id: 4,
+    name: 'Medicine',
+    image: '/categories/medicine.png',
+    subCategories: [
+      { id: 41, name: 'Antibiotics', slug: 'antibiotics' },
+      { id: 42, name: 'Vaccines', slug: 'vaccines' },
+      { id: 43, name: 'Dewormers', slug: 'dewormers' },
+      { id: 44, name: 'Vitamins', slug: 'vitamins' },
+    ],
+  },
+  {
+    id: 5,
+    name: 'Grooming',
+    image: '/categories/grooming.png',
+    subCategories: [
+      { id: 51, name: 'Shampoo', slug: 'shampoo' },
+      { id: 52, name: 'Brushes', slug: 'brushes' },
+      { id: 53, name: 'Nail Clippers', slug: 'nail-clippers' },
+      { id: 54, name: 'Dental Care', slug: 'dental-care' },
+    ],
+  },
+  {
+    id: 6,
+    name: 'Supplements',
+    image: '/categories/supplements.png',
+    subCategories: [
+      { id: 61, name: 'Vitamins', slug: 'vitamins' },
+      { id: 62, name: 'Minerals', slug: 'minerals' },
+      { id: 63, name: 'Probiotics', slug: 'probiotics' },
+      { id: 64, name: 'Joint Care', slug: 'joint-care' },
+    ],
+  },
+  {
+    id: 7,
+    name: 'Care',
+    image: '/categories/care.png',
+    subCategories: [
+      { id: 71, name: 'First Aid', slug: 'first-aid' },
+      { id: 72, name: 'Hygiene', slug: 'hygiene' },
+      { id: 73, name: 'Cleaning', slug: 'cleaning' },
+      { id: 74, name: 'Odor Control', slug: 'odor-control' },
+    ],
+  },
+];
