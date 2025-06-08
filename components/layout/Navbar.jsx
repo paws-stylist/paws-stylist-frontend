@@ -1,13 +1,14 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { FiSearch, FiUser, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
-import { MdMailOutline, MdEmail, MdBusiness } from "react-icons/md";
+import { FiSearch, FiMenu, FiChevronDown } from 'react-icons/fi';
+import { MdEmail, MdBusiness } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import Container from '@/components/ui/Container';
 import NavSidebar from "./NavSidebar";
 import SearchBar from "./SearchBar";
-import { navbarData } from "@/utils/constants";
+import { useGet } from "@/hooks/useApi";
+import Button from "../ui/Button";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -16,6 +17,78 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+
+  // Fetch data from backend
+  const { data: serviceCategories, loading: servicesLoading } = useGet('/service-categories/active', { 
+    immediate: true, 
+    showErrorToast: false 
+  });
+  
+  const { data: productCategories, loading: productCategoriesLoading } = useGet('/product-categories/active', { 
+    immediate: true, 
+    showErrorToast: false 
+  });
+
+  // Build navigation data dynamically
+  const navbarData = useMemo(() => {
+    const baseNavigation = [
+      {
+        name: "Home",
+        url: "/",
+        desc: "All about PAWS",
+      }
+    ];
+
+    // Add Services with dropdown
+    if (serviceCategories && serviceCategories.length > 0) {
+      baseNavigation.push({
+        name: "Services",
+        url: "/services",
+        desc: "Pet grooming and care services",
+        isDropdown: true,
+        dropdownItems: serviceCategories.map(service => ({
+          name: service.title,
+          url: `/services/${service.slug}`,
+          desc: service.description || `${service.title} services for your pet`,
+          image: service.image,
+        })),
+      });
+    }
+
+    // Add Product Categories with subcategories
+    if (productCategories && productCategories.length > 0) {
+      productCategories.forEach(category => {
+        // Handle subcategories - they can be a single object or an array
+        let subcategories = [];
+        if (category.subCategory) {
+          if (Array.isArray(category.subCategory)) {
+            subcategories = category.subCategory.filter(sub => sub && sub.isActive !== false);
+          } else if (typeof category.subCategory === 'object' && category.subCategory.name) {
+            // Single subcategory object
+            if (category.subCategory.isActive !== false) {
+              subcategories = [category.subCategory];
+            }
+          }
+        }
+        
+        const hasSubcategories = subcategories.length > 0;
+        
+        baseNavigation.push({
+          name: category.title,
+          url: `/products/${category.slug}`,
+          desc: category.description || `${category.title} products for your pet`,
+          isDropdown: hasSubcategories,
+          dropdownItems: hasSubcategories ? subcategories.map(subCategory => ({
+            name: subCategory.name,
+            url: `/products/${category.slug}?${subCategory.slug}`,
+            desc: subCategory.description || `${subCategory.name} in ${category.title}`,
+          })) : [],
+        });
+      });
+    }
+
+    return baseNavigation;
+  }, [serviceCategories, productCategories]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,6 +120,9 @@ const Navbar = () => {
     setActiveDropdown(null);
   };
 
+  // Show loading state while fetching navigation data
+  const isLoading = servicesLoading || productCategoriesLoading;
+
   return (
     <>
       <SearchBar isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
@@ -72,6 +148,10 @@ const Navbar = () => {
                   <span className="text-xs font-medium">PAWS STYLIST DOMESTIC PETS GROOMING LLC</span>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <MdBusiness className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
+                  <span className="text-xs font-medium"> بوس  ستيلسة  دمستك  بطس  غرومينج  لك </span>
+                </div>
+                <div className="flex items-center space-x-2">
                   <MdEmail className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
                   <a 
                     href="mailto:info@pawsstylist.com" 
@@ -89,71 +169,82 @@ const Navbar = () => {
             </Link>
 
             {/* Right Side - Search */}
-            <button 
-              className="text-cream-50 hover:text-primary transition-colors"
-              onClick={toggleSearch}
-            >
-              <FiSearch className="w-6 h-6" />
-            </button>
+            <a href="/services">
+              <Button 
+                variant="outline"
+              >
+                Book Appointment
+              </Button>
+            </a>
           </div>
         </Container>
 
         {/* Navigation Links */}
         <nav className="hidden md:block border-t border-white/10">
           <Container>
-            <ul className="flex justify-center space-x-8 py-4">
-              {navbarData.map((item, idx) => (
-                <li 
-                  key={idx}
-                  className="relative"
-                  onMouseEnter={() => item.isDropdown && handleDropdownEnter(item.name)}
-                  onMouseLeave={() => item.isDropdown && handleDropdownLeave()}
-                >
-                  <div className="flex items-center space-x-1">
-                    <Link 
-                      href={item.url}
-                      className="text-sm font-medium text-cream-50 hover:text-primary transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                    {item.isDropdown && (
-                      <FiChevronDown className="w-3 h-3 text-cream-50" />
-                    )}
-                  </div>
-
-                  {/* Dropdown Menu */}
-                  {item.isDropdown && (
-                    <AnimatePresence>
-                      {activeDropdown === item.name && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden min-w-48 z-50"
-                        >
-                          {item.dropdownItems.map((dropdownItem, dropdownIdx) => (
-                            <Link
-                              key={dropdownIdx}
-                              href={dropdownItem.url}
-                              className="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors border-b border-gray-50 last:border-b-0"
-                            >
-                              {dropdownItem.name}
-                            </Link>
-                          ))}
-                        </motion.div>
+            {isLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="text-cream-50 text-sm">Loading navigation...</div>
+              </div>
+            ) : (
+              <ul className="flex justify-center space-x-8 py-4">
+                {navbarData.map((item, idx) => (
+                  <li 
+                    key={idx}
+                    className="relative"
+                    onMouseEnter={() => item.isDropdown && handleDropdownEnter(item.name)}
+                    onMouseLeave={() => item.isDropdown && handleDropdownLeave()}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <Link 
+                        href={item.url}
+                        className="text-sm font-medium text-cream-50 hover:text-primary transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                      {item.isDropdown && (
+                        <FiChevronDown className="w-3 h-3 text-cream-50" />
                       )}
-                    </AnimatePresence>
-                  )}
-                </li>
-              ))}
-            </ul>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    {item.isDropdown && (
+                      <AnimatePresence>
+                        {activeDropdown === item.name && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden min-w-48 z-50"
+                          >
+                            {item.dropdownItems?.map((dropdownItem, dropdownIdx) => (
+                              <Link
+                                key={dropdownIdx}
+                                href={dropdownItem.url}
+                                className="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors border-b border-gray-50 last:border-b-0"
+                              >
+                                {dropdownItem.name}
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </Container>
         </nav>
       </header>
-
       {/* Mobile Sidebar */}
-      <NavSidebar isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+      <NavSidebar 
+        isOpen={menuOpen} 
+        onClose={() => setMenuOpen(false)} 
+        navData={navbarData}
+        isLoading={isLoading}
+      />
     </>
   );
 };

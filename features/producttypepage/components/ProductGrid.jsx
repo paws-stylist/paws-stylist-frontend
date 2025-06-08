@@ -48,7 +48,9 @@ const ProductGrid = ({ products, isService = false }) => {
           description: product.serviceDetail,
           inStock: product.isActive,
           rating: 4.8, // Default rating since not in API
-          isService: true
+          isService: true,
+          slug: product.slug,
+          category: product.serviceCategory
         } : {
           id: product._id,
           name: product.productDetail,
@@ -65,12 +67,14 @@ const ProductGrid = ({ products, isService = false }) => {
           brand: product.brand,
           category: product.category,
           productCode: product.productCode,
-          isService: false
+          isService: false,
+          slug: product.slug,
+          subCategory: product.subCategory
         };
 
         return (
           <motion.div key={product._id} variants={item}>
-            <ProductCard product={mappedProduct} />
+            <ProductCard isService={isService} product={mappedProduct} />
           </motion.div>
         );
       })}

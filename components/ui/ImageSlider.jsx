@@ -85,7 +85,7 @@ const ImageSlider = ({
                   src={image}
                   alt={`Slide ${index + 1}`}
                   className={`${mainImageClassName} object-cover w-full h-full`}
-                  priority={index === 0}
+                  // priority={index === 0}
                 />
               </div>
             ))}

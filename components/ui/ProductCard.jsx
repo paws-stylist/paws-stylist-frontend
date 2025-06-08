@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { FaShoppingCart, FaHeart } from 'react-icons/fa';
 import Button from './Button';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ isService, product }) => {
   const {
     name,
     price,
@@ -14,8 +14,12 @@ const ProductCard = ({ product }) => {
     promotionEndDate,
     promotionalPrice,
     description,
-    inStock
+    inStock,
+    slug,
+    category,
+    subCategory
   } = product;
+  console.log({product})
 
   // Check if promotion is active
   const isPromotionActive = () => {
@@ -55,18 +59,11 @@ const ProductCard = ({ product }) => {
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
         />
         {/* Quick Action Overlay */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="p-3 bg-white rounded-full text-primary-500 hover:bg-primary-500 hover:text-white transition-colors mx-2"
-          >
-            <FaHeart className="w-5 h-5" />
-          </motion.button>
+        {/* <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Button variant="outline" className="bg-white mx-2">
             <FaShoppingCart className="w-5 h-5" />
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Content Container */}
@@ -93,11 +90,11 @@ const ProductCard = ({ product }) => {
         </div>
 
         {/* See Details Button */}
-        <div className="pt-2">
+        <a href={`${isService ? `/services/` : `/products/`}${category?.slug}/${slug}`} className="pt-2">
           <Button variant="outline" className="w-full">
             See Product Details
           </Button>
-        </div>
+        </a>
       </div>
     </motion.div>
   );

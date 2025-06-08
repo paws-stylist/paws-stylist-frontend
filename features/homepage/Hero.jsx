@@ -1,8 +1,11 @@
+import BookingForm from '@/components/ui/BookingForm';
 import Button from '@/components/ui/Button';
 import Container from '@/components/ui/Container';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 const Hero = () => {
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -68,15 +71,23 @@ const Hero = () => {
             Convenient Grooming, Right to Your Doorstep
           </motion.p>
 
-          <motion.div variants={itemVariants}>
+          <motion.a href="#services" variants={itemVariants}>
             <Button 
               variant="outline" 
             >
               Book Home Grooming Paw
             </Button>
-          </motion.div>
+          </motion.a>
         </motion.div>
       </Container>
+      {
+        showBookingModal && (
+          <BookingForm
+            isOpen={showBookingModal}
+            onClose={() => setShowBookingModal(false)}
+          />
+        )
+      }
     </section>
   );
 };

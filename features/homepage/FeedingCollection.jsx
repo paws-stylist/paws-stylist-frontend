@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import { BsArrowRight } from 'react-icons/bs';
 import Shop from './Shop';
 import { useGet } from '../../hooks/useApi';
@@ -11,7 +10,7 @@ const FeedingCollection = () => {
   // Filter products by food category and get 5 newest ones
   const products = allProducts 
     ? allProducts
-        .filter(product => product.category.toLowerCase().includes('food'))
+        .filter(product => product.category.title.toLowerCase())
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 5)
         .map(product => ({
@@ -19,7 +18,9 @@ const FeedingCollection = () => {
           name: product.productDetail,
           description: product.productDetail,
           image: product.images?.[0] || "/ceramic-bowl.webp",
-          featured: false
+          featured: false,
+          category: product.category,
+          slug: product.slug
         }))
     : [];
 
@@ -80,7 +81,8 @@ const FeedingCollection = () => {
   }
 
   const featuredProduct = products.find(p => p.featured) || products[0];
-  const regularProducts = products.filter(p => !p.featured);
+  const regularProducts = products.filter(p => !p.featured) || products.slice(1, 5);
+  console.log({featuredProduct});
 
   return (
     <>
@@ -92,12 +94,10 @@ const FeedingCollection = () => {
             {/* Featured Product - Left side */}
             <div className="lg:w-[58%] group relative overflow-hidden rounded-xl cursor-pointer h-[400px] md:h-[600px]">
               <div className="relative w-full h-full">
-                <Image
+                <img
                   src={featuredProduct.image}
                   alt={featuredProduct.name}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority
+                  className="object-cover h-full w-full transition-transform duration-500 group-hover:scale-105"
                 />
                 {/* Always visible title */}
                 <div className="absolute bottom-0 left-0 right-0 group-hover:opacity-0 transition-opacity duration-300">
@@ -111,9 +111,11 @@ const FeedingCollection = () => {
                     <h3 className="text-xl md:text-2xl font-medium text-white mb-2 md:mb-3">{featuredProduct.name}</h3>
                     <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                       <p className="text-base md:text-lg text-white/90 mb-3 md:mb-4 max-w-xl line-clamp-3">{featuredProduct.description}</p>
+                      <a href={`/products/${featuredProduct.category.slug}/${featuredProduct.slug}`}>
                       <button className="inline-flex items-center text-white hover:text-primary-500 transition-colors text-base md:text-lg group">
                         Discover More <BsArrowRight className="ml-2 text-xl transition-transform group-hover:translate-x-1" />
                       </button>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -143,9 +145,11 @@ const FeedingCollection = () => {
                         <h3 className="text-lg md:text-xl font-medium text-white mb-1 md:mb-2">{product.name}</h3>
                         <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                           <p className="text-sm text-white/90 line-clamp-2 mb-2 md:mb-3">{product.description}</p>
+                          <a href={`/products/${product.category.slug}/${product.slug}`}>
                           <button className="inline-flex items-center text-white hover:text-primary-500 transition-colors group">
                             Shop Now <BsArrowRight className="ml-2 transition-transform group-hover:translate-x-1" />
                           </button>
+                          </a>
                         </div>
                       </div>
                     </div>

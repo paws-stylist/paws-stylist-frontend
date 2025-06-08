@@ -9,27 +9,32 @@ const featuredShops = [
     {
         id: 1,
         name: "Grooming",
-        image: "/shops/grooming.webp"
+        image: "/shops/grooming.webp",
+        link: "/services/grooming"
     },
     {
         id: 2,
         name: "Medical",
-        image: "/shops/medical.webp"
+        image: "/shops/medical.webp",
+        link: "/services/medical"
     },
     {
         id: 3,
         name: "Boarding",
-        image: "/shops/boarding.webp"
+        image: "/shops/boarding.webp",
+        link: "/services/boarding"
     },
     {
         id: 4,
         name: "Training",
-        image: "/shops/training.webp"
+        image: "/shops/training.webp",
+        link: "/services/training"
     },
     {
         id: 5,
         name: "Day Care",
-        image: "/shops/daycare.webp"
+        image: "/shops/daycare.webp",
+        link: "/services/daycare"
     }
 ]
 
@@ -40,7 +45,7 @@ const Shop = () => {
   // Get the newest toy product
   const toyProduct = allProducts 
     ? allProducts
-        .filter(product => product.category.toLowerCase().includes('toy'))
+        .filter(product => product.category.title.toLowerCase().includes('toy'))
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
     : null;
 
@@ -49,12 +54,14 @@ const Shop = () => {
     title: "For Lovers of Cats & Decor",
     description: toyProduct.productDetail || "Every piece in our collection of luxury cat towers, beds, and caves is a work of art - it's supposed to make you feel happy every time you pass by it.",
     buttonText: "Shop Now",
-    image: toyProduct.images?.[0] || "/shop-cats.webp"
+    image: toyProduct.images?.[0] || "/shop-cats.webp",
+    link: `/products/${toyProduct.category.slug}/${toyProduct.slug}`
   } : {
     title: "For Lovers of Cats & Decor",
     description: "Every piece in our collection of luxury cat towers, beds, and caves is a work of art - it's supposed to make you feel happy every time you pass by it.",
     buttonText: "Shop Now",
-    image: "/shop-cats.webp"
+    image: "/shop-cats.webp",
+    link: "/products/accessories"
   };
 
   return (
@@ -69,12 +76,12 @@ const Shop = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <Image
+            <img
               src={shopContent.image}
               alt="Luxury Cat Decor"
-              fill
-              className="object-cover rounded-2xl shadow-xl"
-              priority
+              className="object-cover rounded-2xl shadow-xl h-full w-full"
+              decoding="async"
+              loading="lazy"
             />
             {/* Decorative Elements */}
             <motion.div 
@@ -151,7 +158,8 @@ const Shop = () => {
                 {shopContent.description}
               </motion.p>
               
-              <motion.button 
+              <motion.a 
+                href={shopContent.link}
                 className="inline-flex items-center text-base md:text-lg text-primary-500 hover:text-primary-600 transition-colors group"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -162,7 +170,7 @@ const Shop = () => {
               >
                 {shopContent.buttonText}
                 <BsArrowRight className="ml-2 text-xl transition-transform group-hover:translate-x-2" />
-              </motion.button>
+              </motion.a>
             </div>
           </motion.div>
         </div>
@@ -187,7 +195,8 @@ const Shop = () => {
         </motion.h2>
         <div className='flex flex-wrap md:gap-8 gap-4 items-center justify-center'>
           {featuredShops.map((shop, index) => (
-            <motion.div 
+            <motion.a 
+              href={shop.link}
               key={shop.id} 
               className='group flex flex-col items-center cursor-pointer md:ml-10'
               initial={{ opacity: 0, y: 20 }}
@@ -213,7 +222,7 @@ const Shop = () => {
               >
                 {shop.name}
               </motion.h3>
-            </motion.div>
+            </motion.a>
           ))}
         </div>
       </motion.div>

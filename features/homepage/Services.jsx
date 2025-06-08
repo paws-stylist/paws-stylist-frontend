@@ -105,7 +105,7 @@ const Services = () => {
 
   return (
     <>
-      <div className="my-12 mx-4 md:mx-16 lg:mx-32 xl:mx-64 bg-cream-100 rounded-xl">
+      <div className="my-12 mx-4 md:mx-16 lg:mx-32 xl:mx-64 bg-cream-100 rounded-xl" id="services">
         <div className="flex flex-col lg:flex-row items-center">
           {/* Left side - Image Gallery */}
           <div className="relative w-full h-full lg:w-[55%]">
