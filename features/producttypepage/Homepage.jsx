@@ -9,10 +9,7 @@ const Homepage = () => {
   const params = useParams();
   const productType = params['product-type'];
   const serviceType = params['service-type'];
-  let url;
-  if(typeof window !== 'undefined'){
-    url = window.location.href;
-  }
+  let url=typeof window !== 'undefined' ? window.location.href : '';
   
   // Fetch products and services from API
   const { data: products, loading: productsLoading, error: productsError } = useGet('/products');
