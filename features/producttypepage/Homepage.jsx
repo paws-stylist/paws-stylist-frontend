@@ -10,7 +10,7 @@ const Homepage = () => {
   const productType = params['product-type'];
   const serviceType = params['service-type'];
   let url;
-  if(window.location !== 'undefined'){
+  if(typeof window !== 'undefined'){
     url = window.location.href;
   }
   
