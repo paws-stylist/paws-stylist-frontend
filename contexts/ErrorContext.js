@@ -13,7 +13,7 @@ export const useError = () => {
 };
 
 const Toast = ({ message, type, onClose }) => {
-  const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+  const bgColor = type === 'error' ? '#F44336' : '#4CAF50';
   const icon = type === 'error' ? '❌' : '✅';
 
   return (
@@ -21,7 +21,10 @@ const Toast = ({ message, type, onClose }) => {
       initial={{ opacity: 0, y: -50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -50, scale: 0.9 }}
-      className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 max-w-md`}
+      style={{
+        backgroundColor: `${bgColor}`
+      }}
+      className={`text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 max-w-md`}
     >
       <span className="text-lg">{icon}</span>
       <span className="flex-1 text-sm font-medium">{message}</span>
