@@ -6,8 +6,8 @@ import Container from '@/components/ui/Container';
 const reviews = [
   {
     id: 1,
-    name: 'Emma Thompson',
-    location: 'New York City',
+    name: 'Alia',
+    location: 'Dubai',
     image: '/client/1.jpg',
     petImage: '/client/1.jpg',
     rating: 5,
@@ -15,8 +15,8 @@ const reviews = [
   },
   {
     id: 2,
-    name: 'Michael Chen',
-    location: 'San Francisco',
+    name: 'Sana',
+    location: 'Sharjah',
     image: '/client/2.jpg',
     petImage: '/client/2.jpg',
     rating: 5,
@@ -25,7 +25,7 @@ const reviews = [
   {
     id: 3,
     name: 'Sarah Williams',
-    location: 'Los Angeles',
+    location: 'Sharjah',
     image: '/client/3.jpg',
     petImage: '/client/3.jpg',
     rating: 5,
@@ -34,7 +34,7 @@ const reviews = [
   {
     id: 4,
     name: 'James Anderson',
-    location: 'Chicago',
+    location: 'Dubai',
     image: '/client/4.jpg',
     petImage: '/client/4.jpg',
     rating: 5,

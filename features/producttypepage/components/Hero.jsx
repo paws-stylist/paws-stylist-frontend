@@ -1,71 +1,70 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaPaw, FaHeart, FaStar } from 'react-icons/fa';
+import { FaPaw, FaHeart, FaStar, FaCut, FaHome, FaCar } from 'react-icons/fa';
 import Button from '@/components/ui/Button';
+import { useGet } from '@/hooks/useApi';
 
-const Hero = ({ type }) => {
-  console.log({type});
-  const typeInfo = {
-    'walk-gear': {
-      title: 'Walk Gear',
-      subtitle: 'Luxury Collection',
-      description: 'Handcrafted essentials for the discerning pet owner. Where elegance meets functionality.',
-      bgImage: '/feeding.webp',
-      accent: 'Premium Quality',
-      icon: FaPaw
-    },
-    'feeding': {
-      title: 'Feeding',
-      subtitle: 'Luxury Collection',
-      description: 'Transform dining into an art form with our exquisite feeding solutions.',
-      bgImage: '/feeding.webp',
-      accent: 'Artisan Crafted',
-      icon: FaPaw
-    },
-    'beds': {
-      title: 'Pet Beds',
-      subtitle: 'Luxury Collection',
-      description: 'Where comfort becomes luxury. Indulgent rest for your beloved companion.',
-      bgImage: '/feeding.webp',
-      accent: 'Ultimate Comfort',
-      icon: FaHeart
-    },
-    'toys': {
-      title: 'Pet Toys',
-      subtitle: 'Luxury Collection',
-      description: 'Sophisticated play experiences designed for the refined pet.',
-      bgImage: '/feeding.webp',
-      accent: 'Intelligent Design',
-      icon: FaPaw
-    },
-    'cats': {
-      title: 'Feline',
-      subtitle: 'Luxury Collection',
-      description: 'Exclusively curated for the most discerning feline connoisseurs.',
-      bgImage: '/feeding.webp',
-      accent: 'Feline Excellence',
-      icon: FaPaw
-    },
-    'home-grooming': {
-      title: 'Home Grooming',
-      subtitle: 'Grooming at home',
-      description: 'Experience the luxury of home grooming with our expert team.',
-      bgImage: '/feeding.webp',
-      accent: 'Home Grooming',
-      icon: FaPaw
-    },
-    'mobile-grooming': {
-      title: 'Mobile Grooming',
-      subtitle: 'Grooming on the Go',
-      description: 'Experience the luxury of mobile grooming with our expert team.',
-      bgImage: '/feeding.webp',
-      accent: 'Mobile Grooming',
-      icon: FaPaw
-    }
+const Hero = ({ type, isService = false }) => {
+  console.log({type, isService});
+  
+  // Fetch category data based on whether it's a service or product
+  const { data: categories, loading: categoriesLoading } = useGet(
+    isService ? '/service-categories/active' : '/product-categories/active',
+    { immediate: true, showErrorToast: false }
+  );
+  console.log({categories});
+
+  // Find the current category based on the slug/type
+  let currentCategory = null;
+  if (categories && categories.length > 0) {
+    currentCategory = categories.find(cat => cat.slug === type);
+  }
+
+  // Fallback content structure
+  const fallbackInfo = {
+    title: isService ? 'Our Services' : 'Our Products',
+    subtitle: 'Premium Collection',
+    description: isService 
+      ? 'Professional pet care services designed for your beloved companion.' 
+      : 'Quality products crafted with care for your pet\'s needs.',
+    image: '/feeding.webp',
+    accent: 'Premium Quality'
   };
 
-  const info = typeInfo[type] || typeInfo['walk-gear'];
-  const Icon = info.icon;
+  // Use category data or fallback
+  const categoryInfo = currentCategory ? {
+    title: currentCategory.title,
+    subtitle: currentCategory.subtitle || (isService ? 'Professional Service' : 'Premium Collection'),
+    description: currentCategory.description,
+    image: currentCategory.image || '/feeding.webp',
+    accent: currentCategory.accent || (isService ? 'Professional Care' : 'Premium Quality')
+  } : fallbackInfo;
+
+  // Dynamic icon selection based on service type or category
+  const getIcon = () => {
+    if (isService) {
+      if (type?.includes('home')) return FaHome;
+      if (type?.includes('mobile')) return FaCar;
+      return FaCut;
+    }
+    return FaPaw;
+  };
+
+  const Icon = getIcon();
+
+  // Show loading state
+  if (categoriesLoading) {
+    return (
+      <div className="relative min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 overflow-hidden lg:px-32 md:px-16 px-4">
+        <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-gray-900/60 via-gray-900/30 to-transparent z-0"></div>
+        <div className="container mx-auto px-4 relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="text-xl text-gray-600">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 overflow-hidden lg:px-32 md:px-16 px-4">
@@ -95,7 +94,7 @@ const Hero = ({ type }) => {
             >
               <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
               <span className="text-primary-700 font-medium text-sm tracking-wide uppercase">
-                {info.accent}
+                {categoryInfo.accent}
               </span>
             </motion.div>
 
@@ -107,9 +106,9 @@ const Hero = ({ type }) => {
                 transition={{ delay: 0.3, duration: 0.8 }}
                 className="text-6xl lg:text-7xl font-light text-gray-900 leading-tight"
               >
-                {info.title}
+                {categoryInfo.title}
                 <span className="block text-primary-600 font-normal italic">
-                  {info.subtitle}
+                  {categoryInfo.subtitle}
                 </span>
               </motion.h1>
               
@@ -119,25 +118,26 @@ const Hero = ({ type }) => {
                 transition={{ delay: 0.5, duration: 0.6 }}
                 className="text-xl text-gray-600 max-w-lg leading-relaxed font-light"
               >
-                {info.description}
+                {categoryInfo.description}
               </motion.p>
             </div>
 
             {/* CTA Section */}
-            <motion.div
+            <motion.a
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.6 }}
               className="flex flex-col sm:flex-row gap-4 pt-4"
+              href="#collection"
             >
               <Button variant="primary">
-                Explore Collection
+                {isService ? 'Book Service' : 'Explore Collection'}
               </Button>
               
-              <Button variant="outline">
-                View Catalog
-              </Button>
-            </motion.div>
+              {/* <Button variant="outline">
+                {isService ? 'Learn More' : 'View Catalog'}
+              </Button> */}
+            </motion.a>
 
             {/* Luxury Indicators */}
             <motion.div
@@ -176,9 +176,12 @@ const Hero = ({ type }) => {
               {/* Main Image */}
               <div className="relative bg-white rounded-lg shadow-2xl overflow-hidden">
                 <img
-                  src={info.bgImage}
-                  alt={info.title}
+                  src={categoryInfo.image}
+                  alt={categoryInfo.title}
                   className="w-full h-[400px] md:h-[600px] object-cover"
+                  onError={(e) => {
+                    e.target.src = '/feeding.webp'; // Fallback image
+                  }}
                 />
                 
                 {/* Overlay Gradient */}
@@ -193,7 +196,9 @@ const Hero = ({ type }) => {
                 >
                   <div className="flex items-center gap-2">
                     <Icon className="w-4 h-4 text-primary-600" />
-                    <span className="text-sm font-medium text-gray-800">Premium Quality</span>
+                    <span className="text-sm font-medium text-gray-800">
+                      {isService ? 'Professional Service' : 'Premium Quality'}
+                    </span>
                   </div>
                 </motion.div>
               </div>
@@ -209,7 +214,9 @@ const Hero = ({ type }) => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary-600">20+</div>
-                  <div className="text-sm text-gray-600">Curated Items</div>
+                  <div className="text-sm text-gray-600">
+                    {isService ? 'Services' : 'Curated Items'}
+                  </div>
                 </div>
                 <div className="text-center border-l border-gray-200 pl-6">
                   <div className="text-2xl font-bold text-primary-600">4.9</div>

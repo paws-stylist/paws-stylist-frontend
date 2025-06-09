@@ -9,14 +9,17 @@ const Homepage = () => {
   const params = useParams();
   const productType = params['product-type'];
   const serviceType = params['service-type'];
+  let url;
+  if(window.location !== 'undefined'){
+    url = window.location.href;
+  }
   
   // Fetch products and services from API
   const { data: products, loading: productsLoading, error: productsError } = useGet('/products');
   const { data: services, loading: servicesLoading, error: servicesError } = useGet('/services');
-  console.log(services)
   // Determine what to show based on URL
-  const isService = !!serviceType;
-  const isProduct = !!productType;
+  const isService = !!serviceType || url.includes('services');
+  const isProduct = !!productType || url.includes('products');
 
   let itemsToShow = [];
   let loading = false;
@@ -25,29 +28,26 @@ const Homepage = () => {
   if (isService) {
     loading = servicesLoading;
     error = servicesError;
-    // Filter services by type if needed
     if (services) {
-      itemsToShow = serviceType === 'all' ? services : services.filter(service => 
+      itemsToShow = serviceType !== undefined ? services.filter(service => 
         service.serviceType.toLowerCase() === serviceType.toLowerCase()
-      );
+      ) : services;
     }
   } else if (isProduct) {
     loading = productsLoading;
     error = productsError;
-    // Filter products by type if needed
     if (products) {
-      itemsToShow = productType === 'all' ? products : products.filter(product => 
+      itemsToShow = productType !== undefined ? products.filter(product => 
         product.productType.toLowerCase() === productType.toLowerCase() ||
-        product.category.toLowerCase().includes(productType.toLowerCase())
-      );
+        product.category.title.toLowerCase().includes(productType.toLowerCase())
+      ) : products;
     }
   }
 
-  // Show loading state
   if (loading) {
     return (
       <main className="min-h-screen bg-cream-50">
-        <Hero type={productType || serviceType} />
+        <Hero type={productType || serviceType} isService={isService} />
         <section className="container py-16 md:py-24">
           <h2 className="text-3xl md:text-4xl font-semibold text-center text-brown mb-8 md:mb-12">BROWSE COLLECTION</h2>
           <div className="flex items-center justify-center h-64">
@@ -58,11 +58,10 @@ const Homepage = () => {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <main className="min-h-screen bg-cream-50">
-        <Hero type={productType || serviceType} />
+        <Hero type={productType || serviceType} isService={isService} />
         <section className="container py-16 md:py-24">
           <h2 className="text-3xl md:text-4xl font-semibold text-center text-brown mb-8 md:mb-12">BROWSE COLLECTION</h2>
           <div className="flex items-center justify-center h-64">
@@ -76,10 +75,10 @@ const Homepage = () => {
   return (
     <main className="min-h-screen bg-cream-50">
       {/* Hero Section */}
-      <Hero type={productType || serviceType} />
+      <Hero type={productType || serviceType} isService={isService} />
       
       {/* Products/Services Section */}
-      <section className="container py-16 md:py-24">
+      <section className="container py-16 md:py-24" id="collection">
         <h2 className="text-3xl md:text-4xl font-semibold text-center text-brown mb-8 md:mb-12">BROWSE COLLECTION</h2>
         <ProductGrid products={itemsToShow} isService={isService} />
       </section>

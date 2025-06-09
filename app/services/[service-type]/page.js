@@ -8,5 +8,4 @@ const ServiceTypeHome = () => {
     </div>
   )
 }
-
 export default ServiceTypeHome

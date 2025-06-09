@@ -19,12 +19,14 @@ import { FaShield } from 'react-icons/fa6'
 import Button from '@/components/ui/Button'
 import ImageSlider from '@/components/ui/ImageSlider'
 import BookingForm from '@/components/ui/BookingForm'
+import BuyingForm from '@/components/ui/BuyingForm'
 
 const SingleProductCard = ({ data, type, params }) => {
   const [selectedVariant, setSelectedVariant] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isFavorited, setIsFavorited] = useState(false)
   const [showBookingForm, setShowBookingForm] = useState(false)
+  const [showBuyingForm, setShowBuyingForm] = useState(false)
 
   const isProduct = type === 'product'
   const isService = type === 'service'
@@ -34,7 +36,7 @@ const SingleProductCard = ({ data, type, params }) => {
   const promotionPrice = isProduct ? data.promotion?.price : null // No promotionPrice for services in new structure
   const hasPromotion = isProduct ? !!data.promotion : (data.promotion?.isActive || false)
   const displayPrice = hasPromotion && promotionPrice ? promotionPrice : currentPrice
-  const itemName = isProduct ? data.productDetail : data.serviceName
+  const itemName = isProduct ? (data.productDetail || data.name || data.title) : (data.serviceName || data.name || data.title)
 
   // Calculate savings - only for products
   const savings = hasPromotion && promotionPrice ? currentPrice - promotionPrice : 0
@@ -48,8 +50,26 @@ const SingleProductCard = ({ data, type, params }) => {
   const promotionStartDate = isProduct ? data.promotion?.startDate : null
   const promotionEndDate = isProduct ? data.promotion?.endDate : null
 
+  // Safe string conversion for display
+  const safeString = (value) => {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return value.toString();
+    if (value && typeof value === 'object') return JSON.stringify(value);
+    return value || '';
+  };
+
+  // Safe description handling
+  const description = isProduct 
+    ? (data.description || data.productDetail || data.details || '')
+    : (data.description || data.serviceDetail || data.details || '');
+
   const handleBookingSuccess = (bookingData) => {
     console.log('Booking successful:', bookingData);
+    // You can add additional success handling here
+  };
+
+  const handleBuyingSuccess = (buyingData) => {
+    console.log('Purchase successful:', buyingData);
     // You can add additional success handling here
   };
 
@@ -200,12 +220,12 @@ const SingleProductCard = ({ data, type, params }) => {
                     {data.brand && (
                       <span className="bg-gradient-to-r from-primary-50 to-primary-100 text-primary-700 px-3 sm:px-4 py-1 sm:py-2 rounded-full font-medium text-xs sm:text-sm border border-primary-200">
                         <FaAward className="w-2 sm:w-3 h-2 sm:h-3 inline mr-1 sm:mr-2" />
-                        {data.brand}
+                        {safeString(data.brand)}
                       </span>
                     )}
                     {data.category && (
                       <span className="bg-gradient-to-r from-secondary-50 to-secondary-100 text-secondary-700 px-3 sm:px-4 py-1 sm:py-2 rounded-full font-medium text-xs sm:text-sm border border-secondary-200">
-                        {data.category}
+                        {safeString(typeof data.category === 'object' ? data.category.title || data.category.name : data.category)}
                       </span>
                     )}
                   </div>
@@ -216,7 +236,7 @@ const SingleProductCard = ({ data, type, params }) => {
                   <div className="flex flex-wrap gap-2">
                     <span className="bg-gradient-to-r from-primary-50 to-primary-100 text-primary-700 px-3 sm:px-4 py-1 sm:py-2 rounded-full font-medium text-xs sm:text-sm border border-primary-200">
                       <FaAward className="w-2 sm:w-3 h-2 sm:h-3 inline mr-1 sm:mr-2" />
-                      {data.serviceType}
+                      {safeString(data.serviceType)}
                     </span>
                   </div>
                 )}
@@ -252,7 +272,7 @@ const SingleProductCard = ({ data, type, params }) => {
               {/* Description */}
               <div className="prose prose-gray max-w-none">
                 <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                  {isProduct ? data.productDetail : data.serviceDetail}
+                  {description}
                 </p>
               </div>
 
@@ -283,14 +303,14 @@ const SingleProductCard = ({ data, type, params }) => {
                   <Button 
                     variant="primary" 
                     className="justify-center py-3 sm:py-4 text-sm sm:text-base font-semibold"
-                    onClick={isService ? () => setShowBookingForm(true) : undefined}
+                    onClick={isService ? () => setShowBookingForm(true) : () => setShowBuyingForm(true)}
                   >
                     <FaShoppingCart className="w-4 sm:w-5 h-4 sm:h-5" />
-                    {isProduct ? 'Add to Cart' : 'Book Service'}
+                    {isProduct ? 'Buy Now' : 'Book Service'}
                   </Button>
-                  <Button variant="outline" className="justify-center py-3 sm:py-4 text-sm sm:text-base font-semibold">
+                  {/* <Button variant="outline" className="justify-center py-3 sm:py-4 text-sm sm:text-base font-semibold">
                     {isProduct ? 'Buy Now' : 'Call Now'}
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
 
@@ -344,6 +364,18 @@ const SingleProductCard = ({ data, type, params }) => {
             service={data}
             onClose={() => setShowBookingForm(false)}
             onSuccess={handleBookingSuccess}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Buying Form Modal */}
+      <AnimatePresence>
+        {showBuyingForm && isProduct && (
+          <BuyingForm
+            product={data}
+            quantity={quantity}
+            onClose={() => setShowBuyingForm(false)}
+            onSuccess={handleBuyingSuccess}
           />
         )}
       </AnimatePresence>

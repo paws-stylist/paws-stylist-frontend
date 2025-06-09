@@ -8,5 +8,4 @@ const ProductTypeHome = () => {
     </div>
   )
 }
-
 export default ProductTypeHome

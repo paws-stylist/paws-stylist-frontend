@@ -1,25 +1,51 @@
 'use client'
 import { motion } from 'framer-motion';
 import { FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
-import { serviceTypes, productCategories } from '@/data/sampleData';
+import { useGet } from '@/hooks/useApi';
+import { useMemo } from 'react';
 import Container from '../ui/Container'
 
 const Footer = () => {
-  const footerLinks = {
-    services: serviceTypes.map(service => ({
-      name: service.name,
-      href: `/services/${service.name.toLowerCase().replace(' ', '-')}`
-    })),
-    products: productCategories.map(category => ({
-      name: category.name,
-      href: `/products/${category.name.toLowerCase()}`
-    })),
-    support: [
+  // Fetch data from backend
+  const { data: serviceCategories, loading: servicesLoading } = useGet('/service-categories/active', { 
+    immediate: true, 
+    showErrorToast: false 
+  });
+  
+  const { data: productCategories, loading: productCategoriesLoading } = useGet('/product-categories/active', { 
+    immediate: true, 
+    showErrorToast: false 
+  });
+
+  // Build footer links dynamically
+  const footerLinks = useMemo(() => {
+    const links = {};
+
+    // Add services if available
+    if (serviceCategories && serviceCategories.length > 0) {
+      links.services = serviceCategories.map(service => ({
+        name: service.title,
+        href: `/services/${service.slug}`
+      }));
+    }
+
+    // Add products if available
+    if (productCategories && productCategories.length > 0) {
+      links.products = productCategories.map(category => ({
+        name: category.title,
+        href: `/products/${category.slug}`
+      }));
+    }
+
+    // Add support links
+    links.support = [
       { name: 'Terms of Service', href: '/terms-of-service' },
       { name: 'Privacy Policy', href: '/privacy-policy' },
       { name: 'Shipping Policy', href: '/shipping-policy' },
-    ],
-  };
+    ];
+
+    return links;
+  }, [serviceCategories, productCategories]);
 
   const socialLinks = [
     { icon: FiInstagram, href: '#' },
@@ -27,6 +53,8 @@ const Footer = () => {
     { icon: FiTwitter, href: '#' },
     { icon: FiYoutube, href: '#' },
   ];
+
+  const isLoading = servicesLoading || productCategoriesLoading;
 
   return (
     <footer className="bg-secondary-900 text-white pt-20 pb-10">
@@ -44,7 +72,7 @@ const Footer = () => {
             <p className="text-gray-400 mb-8 max-w-md">
               Providing luxury care and premium services for your beloved pets. Because they deserve nothing but the best.
             </p>
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               {socialLinks.map((social, index) => {
                 const Icon = social.icon;
                 return (
@@ -58,37 +86,49 @@ const Footer = () => {
                   </motion.a>
                 );
               })}
-            </div>
+            </div> */}
           </motion.div>
 
           {/* Links Sections */}
-          {Object.entries(footerLinks).map(([title, links], index) => (
+          {isLoading ? (
             <motion.div
-              key={title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-3"
             >
-              <h3 className="text-lg font-semibold mb-6 capitalize">{title}</h3>
-              <ul className="space-y-4">
-                {links.map((link, linkIndex) => (
-                  <motion.li
-                    key={link.name}
-                    whileHover={{ x: 2 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <a
-                      href={link.href}
-                      className="text-gray-400 hover:text-primary-500 transition-colors"
-                    >
-                      {link.name}
-                    </a>
-                  </motion.li>
-                ))}
-              </ul>
+              <div className="text-gray-400 text-sm">Loading...</div>
             </motion.div>
-          ))}
+          ) : (
+            Object.entries(footerLinks).map(([title, links], index) => (
+              <motion.div
+                key={title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <h3 className="text-lg font-semibold mb-6 capitalize">{title}</h3>
+                <ul className="space-y-4">
+                  {links.map((link, linkIndex) => (
+                    <motion.li
+                      key={link.name}
+                      whileHover={{ x: 2 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <a
+                        href={link.href}
+                        className="text-gray-400 hover:text-primary-500 transition-colors"
+                      >
+                        {link.name}
+                      </a>
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))
+          )}
         </div>
 
         {/* Newsletter Section */}

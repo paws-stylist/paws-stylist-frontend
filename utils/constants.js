@@ -25,15 +25,10 @@ export const navbarData = [
     isDropdown: true,
     dropdownItems: category.subCategories.map(subCategory => ({
       name: subCategory.name,
-      url: `/products/${category.name.toLowerCase()}/${subCategory.slug}`,
+      url: `/products/${category.name.toLowerCase()}?${subCategory.slug}`,
       desc: `${subCategory.name} in ${category.name}`,
     })),
   })),
-  // {
-  //   name: "Blogs",
-  //   url: "/blogs",
-  //   desc: "Latest blog posts",
-  // }
 ];
 
 export const footerData = [
@@ -81,3 +76,18 @@ export const footerData = [
     ],
   },
 ];
+
+
+export function generateSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+export function decodeSlug(slug) {
+  return slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
+}

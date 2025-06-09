@@ -1,33 +1,29 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCalendarAlt, FaClock, FaUser, FaEnvelope, FaPhone, FaPaw, FaStickyNote, FaMapMarkerAlt, FaVenusMars, FaCog } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaShoppingCart, FaBox, FaStickyNote, FaCog, FaCalendarAlt, FaCreditCard, FaCalculator } from 'react-icons/fa';
 import Button from './Button';
 import { usePost } from '../../hooks/useApi';
 
-const BookingForm = ({ service, onClose, onSuccess }) => {
+const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    appointmentType: 'normal',
-    contactName: '',
-    gender: '',
-    locationDetail: {
+    orderType: 'normal',
+    customerName: '',
+    contactNumber: '',
+    email: '',
+    deliveryAddress: {
       street: '',
       city: '',
       state: '',
       zipCode: '',
       country: 'UAE'
     },
-    contactNumber: '',
-    email: '',
-    petType: '',
-    petBreed: '',
-    appointmentDate: '',
-    detail: '',
-    afterServiceRemarks: ''
+    orderDate: '',
+    orderNotes: ''
   });
 
-  const [bookingState, triggerBooking] = usePost('/appointments', {
+  const [buyingState, triggerPurchase] = usePost('/orders', {
     showSuccessToast: true,
-    successMessage: 'Appointment booked successfully! You will receive a confirmation email.',
+    successMessage: 'Order placed successfully! You will receive a confirmation email.',
     onSuccess: (data) => {
       if (onSuccess) onSuccess(data);
       if (onClose) onClose();
@@ -36,12 +32,12 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name.startsWith('locationDetail.')) {
+    if (name.startsWith('deliveryAddress.')) {
       const field = name.split('.')[1];
       setFormData(prev => ({
         ...prev,
-        locationDetail: {
-          ...prev.locationDetail,
+        deliveryAddress: {
+          ...prev.deliveryAddress,
           [field]: value
         }
       }));
@@ -55,13 +51,13 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    formData.orderDate = new Date().toISOString();
     
     // Validate required fields
-    if (!formData.contactName || !formData.gender || !formData.locationDetail.street || 
-        !formData.locationDetail.city || !formData.locationDetail.state || 
-        !formData.locationDetail.zipCode || !formData.contactNumber || 
-        !formData.email || !formData.petType || !formData.petBreed || 
-        !formData.appointmentDate) {
+    if (!formData.customerName || !formData.contactNumber || !formData.email || 
+        !formData.deliveryAddress.street || !formData.deliveryAddress.city || 
+        !formData.deliveryAddress.state || !formData.deliveryAddress.zipCode || 
+        !formData.orderDate) {
       alert('Please fill in all required fields');
       return;
     }
@@ -73,22 +69,27 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
       return;
     }
 
-    // Validate appointment date (must be in the future)
-    const selectedDate = new Date(formData.appointmentDate);
-    const now = new Date();
-    if (selectedDate <= now) {
-      alert('Please select a future date and time');
-      return;
-    }
+    // Calculate pricing
+    const currentPrice = product.salePrice;
+    const promotionPrice = product.promotion?.price;
+    const hasPromotion = !!product.promotion;
+    const unitPrice = hasPromotion && promotionPrice ? promotionPrice : currentPrice;
+    const subtotal = unitPrice * quantity;
+    
 
     try {
-      await triggerBooking({
+      await triggerPurchase({
         ...formData,
-        services: [service._id], // Auto-populate with current service
-        appointmentDate: new Date(formData.appointmentDate).toISOString()
+        products: [{
+          product: product._id,
+          quantity: quantity
+        }],
+        orderDate: new Date(formData.orderDate).toISOString(),
+        subtotal: subtotal,
+        totalAmount: totalAmount
       });
     } catch (error) {
-      console.error('Booking error:', error);
+      console.error('Purchase error:', error);
     }
   };
 
@@ -112,6 +113,19 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
       transition: { duration: 0.3, ease: "easeOut" }
     }
   };
+
+  // Calculate pricing for display
+  const currentPrice = product.salePrice;
+  const promotionPrice = product.promotion?.price;
+  const hasPromotion = !!product.promotion;
+  const unitPrice = hasPromotion && promotionPrice ? promotionPrice : currentPrice;
+  const subtotal = unitPrice * quantity;
+  const savings = hasPromotion && promotionPrice ? (currentPrice - promotionPrice) * quantity : 0;
+  
+  // Calculate totals with tax and delivery
+  const taxAmount = formData.taxAmount ? parseFloat(formData.taxAmount) : 0;
+  const deliveryFee = formData.deliveryFee ? parseFloat(formData.deliveryFee) : 0;
+  const totalAmount = subtotal + taxAmount + deliveryFee;
 
   // Get minimum date (tomorrow)
   const tomorrow = new Date();
@@ -138,8 +152,8 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Book Appointment</h2>
-              <p className="text-gray-600 mt-1">{service?.serviceName}</p>
+              <h2 className="text-2xl font-bold text-gray-900">Complete Order</h2>
+              <p className="text-gray-600 mt-1">{product?.productDetail || product?.name}</p>
             </div>
             <button
               onClick={onClose}
@@ -154,60 +168,39 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Appointment Type */}
+          {/* Order Type */}
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <FaCog className="inline w-4 h-4 mr-2 text-primary-600" />
-              Appointment Type
+              Order Type
             </label>
             <select
-              name="appointmentType"
-              value={formData.appointmentType}
+              name="orderType"
+              value={formData.orderType}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             >
-              <option value="normal">Normal</option>
-              <option value="urgent">Urgent</option>
+              <option value="normal">Normal Delivery</option>
+              <option value="urgent">Urgent Delivery</option>
             </select>
           </motion.div>
 
-          {/* Contact Name and Gender */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <motion.div variants={itemVariants}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FaUser className="inline w-4 h-4 mr-2 text-primary-600" />
-                Contact Name *
-              </label>
-              <input
-                type="text"
-                name="contactName"
-                value={formData.contactName}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                placeholder="Enter your full name"
-                required
-              />
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FaVenusMars className="inline w-4 h-4 mr-2 text-primary-600" />
-                Gender *
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                required
-              >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </motion.div>
-          </div>
+          {/* Customer Name */}
+          <motion.div variants={itemVariants}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <FaUser className="inline w-4 h-4 mr-2 text-primary-600" />
+              Customer Name *
+            </label>
+            <input
+              type="text"
+              name="customerName"
+              value={formData.customerName}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              placeholder="Enter your full name"
+              required
+            />
+          </motion.div>
 
           {/* Contact Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -244,17 +237,17 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
             </motion.div>
           </div>
 
-          {/* Location Details */}
+          {/* Delivery Address */}
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-gray-700 mb-3">
               <FaMapMarkerAlt className="inline w-4 h-4 mr-2 text-primary-600" />
-              Location Details *
+              Delivery Address *
             </label>
             <div className="space-y-3">
               <input
                 type="text"
-                name="locationDetail.street"
-                value={formData.locationDetail.street}
+                name="deliveryAddress.street"
+                value={formData.deliveryAddress.street}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="Street Address *"
@@ -263,8 +256,8 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input
                   type="text"
-                  name="locationDetail.city"
-                  value={formData.locationDetail.city}
+                  name="deliveryAddress.city"
+                  value={formData.deliveryAddress.city}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                   placeholder="City *"
@@ -272,8 +265,8 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 />
                 <input
                   type="text"
-                  name="locationDetail.state"
-                  value={formData.locationDetail.state}
+                  name="deliveryAddress.state"
+                  value={formData.deliveryAddress.state}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                   placeholder="State/Emirate *"
@@ -283,8 +276,8 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input
                   type="text"
-                  name="locationDetail.zipCode"
-                  value={formData.locationDetail.zipCode}
+                  name="deliveryAddress.zipCode"
+                  value={formData.deliveryAddress.zipCode}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                   placeholder="Zip Code *"
@@ -292,8 +285,8 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 />
                 <input
                   type="text"
-                  name="locationDetail.country"
-                  value={formData.locationDetail.country}
+                  name="deliveryAddress.country"
+                  value={formData.deliveryAddress.country}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                   placeholder="Country"
@@ -302,89 +295,78 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
             </div>
           </motion.div>
 
-          {/* Pet Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <motion.div variants={itemVariants}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FaPaw className="inline w-4 h-4 mr-2 text-primary-600" />
-                Pet Type *
-              </label>
-              <select
-                name="petType"
-                value={formData.petType}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                required
-              >
-                <option value="">Select Pet Type</option>
-                <option value="dog">Dog</option>
-                <option value="cat">Cat</option>
-                <option value="bird">Bird</option>
-                <option value="rabbit">Rabbit</option>
-                <option value="other">Other</option>
-              </select>
-            </motion.div>
-
-            <motion.div variants={itemVariants}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FaPaw className="inline w-4 h-4 mr-2 text-primary-600" />
-                Pet Breed *
-              </label>
-              <input
-                type="text"
-                name="petBreed"
-                value={formData.petBreed}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                placeholder="Enter pet breed"
-                required
-              />
-            </motion.div>
-          </div>
-
-          {/* Appointment Date */}
-          <motion.div variants={itemVariants}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <FaCalendarAlt className="inline w-4 h-4 mr-2 text-primary-600" />
-              Preferred Date & Time *
-            </label>
-            <input
-              type="datetime-local"
-              name="appointmentDate"
-              value={formData.appointmentDate}
-              onChange={handleInputChange}
-              min={minDate}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-              required
-            />
-          </motion.div>
-
-          {/* Additional Details */}
+          {/* Order Notes */}
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <FaStickyNote className="inline w-4 h-4 mr-2 text-primary-600" />
-              Additional Details
+              Order Notes
             </label>
             <textarea
-              name="detail"
-              value={formData.detail}
+              name="orderNotes"
+              value={formData.orderNotes}
               onChange={handleInputChange}
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
-              placeholder="Any special requirements or notes..."
+              placeholder="Any special instructions or notes..."
             />
           </motion.div>
 
-          {/* Service Summary */}
+          {/* Order Summary */}
           <motion.div variants={itemVariants} className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-gray-900 mb-2">Service Summary</h3>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p><span className="font-medium">Service:</span> {service?.serviceName}</p>
-              <p><span className="font-medium">Type:</span> {service?.serviceType}</p>
-              <p><span className="font-medium">Price:</span> AED {service?.servicePrice}</p>
-              {service?.promotion?.isActive && (
-                <p className="text-primary-600 font-medium">
-                  Special Offer Available!
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <FaShoppingCart className="w-4 h-4 mr-2" />
+              Order Summary
+            </h3>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span className="font-medium">Product:</span>
+                <span>{product?.productDetail || product?.name}</span>
+              </div>
+              {product?.productCode && (
+                <div className="flex justify-between">
+                  <span className="font-medium">Code:</span>
+                  <span>{product.productCode}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="font-medium">Quantity:</span>
+                <span>{quantity}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Unit Price:</span>
+                <span>AED {unitPrice?.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Subtotal:</span>
+                <span>AED {subtotal?.toLocaleString()}</span>
+              </div>
+              {hasPromotion && savings > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span className="font-medium">You Save:</span>
+                  <span>AED {savings?.toLocaleString()}</span>
+                </div>
+              )}
+              {taxAmount > 0 && (
+                <div className="flex justify-between">
+                  <span className="font-medium">Tax:</span>
+                  <span>AED {taxAmount?.toLocaleString()}</span>
+                </div>
+              )}
+              {deliveryFee > 0 && (
+                <div className="flex justify-between">
+                  <span className="font-medium">Delivery Fee:</span>
+                  <span>AED {deliveryFee?.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="border-t border-gray-300 pt-2 mt-2">
+                <div className="flex justify-between font-semibold text-gray-900">
+                  <span>Total:</span>
+                  <span>AED {totalAmount?.toLocaleString()}</span>
+                </div>
+              </div>
+              {hasPromotion && (
+                <p className="text-primary-600 font-medium text-xs">
+                  Special offer applied!
                 </p>
               )}
             </div>
@@ -396,26 +378,29 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               type="submit"
               variant="primary"
               className="w-full py-3 text-base font-semibold"
-              disabled={bookingState.loading}
+              disabled={buyingState.loading}
             >
-              {bookingState.loading ? (
+              {buyingState.loading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Booking...
+                  Processing...
                 </div>
               ) : (
-                'Book Appointment'
+                <>
+                  <FaShoppingCart className="w-4 h-4 mr-2" />
+                  Place Order - AED {totalAmount?.toLocaleString()}
+                </>
               )}
             </Button>
           </motion.div>
 
           {/* Error Display */}
-          {bookingState.error && (
+          {buyingState.error && (
             <motion.div 
               variants={itemVariants}
               className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
             >
-              {bookingState.error}
+              {buyingState.error}
             </motion.div>
           )}
         </form>
@@ -424,4 +409,4 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
   );
 };
 
-export default BookingForm; 
+export default BuyingForm; 
