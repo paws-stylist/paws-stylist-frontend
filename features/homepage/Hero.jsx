@@ -75,7 +75,7 @@ const Hero = () => {
             <Button 
               variant="outline" 
             >
-              Book Home Grooming Paw
+              Book Mobile Grooming
             </Button>
           </motion.a>
         </motion.div>

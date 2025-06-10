@@ -40,7 +40,7 @@ export default function NavSidebar({ isOpen, onClose, navData = [], isLoading = 
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <Link href="/" onClick={onClose}>
-                  <img src="/logo.png" alt="PAWS" className="h-10" />
+                  <img src="/logo.png" alt="PAWS" className="h-14" />
                 </Link>
                 <button
                   onClick={onClose}

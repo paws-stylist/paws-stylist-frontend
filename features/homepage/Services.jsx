@@ -11,8 +11,6 @@ import { useGet } from '../../hooks/useApi';
 const serviceTypes = [
   { value: "grooming", label: "Grooming" },
   { value: "medical", label: "Medical" },
-  { value: "training", label: "Training" },
-  { value: "boarding", label: "Boarding" },
   { value: "daycare", label: "Day Care" },
   { value: "consultation", label: "Consultation" },
   { value: "wellness", label: "Wellness" }

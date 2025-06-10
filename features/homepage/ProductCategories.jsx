@@ -20,24 +20,14 @@ const categories = [
   },
   {
     id: 4,
-    name: 'Medicine',
-    image: '/category/medicine.png',
-  },
-  {
-    id: 5,
     name: 'Grooming',
     image: '/category/grooming.png',
   },
   {
-    id: 6,
+    id: 5,
     name: 'Supplements',
     image: '/category/supplement.png',
-  },
-  {
-    id: 7,
-    name: 'Care',
-    image: '/category/care.png',
-  },
+  }
 ];
 
 const ProductCategories = () => {
@@ -58,7 +48,7 @@ const ProductCategories = () => {
             >
               <Link href={`/products/${category.name.toLowerCase()}`} className="relative pt-[30%]">
                 {/* Image Container */}
-                <div className="absolute -top-12 right-2 md:w-[85%] w-[80%] aspect-square z-20">
+                <div className="absolute -top-14 right-2 md:w-[90%] w-[80%] aspect-square z-20">
                   <motion.img
                     src={category.image}
                     alt={category.name}
@@ -68,7 +58,7 @@ const ProductCategories = () => {
                 </div>
                 
                 {/* Box Container */}
-                <div className="bg-brown rounded-2xl md:h-[250px] h-[150px] aspect-square relative z-10">
+                <div className="bg-brown rounded-2xl md:h-[300px] h-[150px] aspect-square relative z-10">
                   <div className="absolute bottom-6 left-6">
                     <h3 className="text-3xl font-bold text-cream-50 uppercase">
                       {category.name}

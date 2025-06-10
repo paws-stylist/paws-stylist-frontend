@@ -19,18 +19,6 @@ const featuredShops = [
     },
     {
         id: 3,
-        name: "Boarding",
-        image: "/shops/boarding.webp",
-        link: "/services/boarding"
-    },
-    {
-        id: 4,
-        name: "Training",
-        image: "/shops/training.webp",
-        link: "/services/training"
-    },
-    {
-        id: 5,
         name: "Day Care",
         image: "/shops/daycare.webp",
         link: "/services/daycare"

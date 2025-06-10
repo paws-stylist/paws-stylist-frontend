@@ -143,22 +143,22 @@ const Navbar = () => {
                 <FiMenu className="w-6 h-6" />
               </button>
               <Link href="/" className="md:flex hidden">
-                <img src="/logo.png" alt="PAWS" className="h-12" />
+                <img src="/logo.png" alt="PAWS" className="h-16" />
               </Link>
               <div className="hidden md:flex flex-col items-start space-x4 text-cream-50">
                 <div className="flex items-center space-x-2">
-                  <MdBusiness className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
-                  <span className="text-base font-medium">PAWS STYLIST DOMESTIC PETS GROOMING LLC</span>
+                  <MdBusiness className="w-4 h-4 text-secondary hover:text-primary transition-colors" />
+                  <span className="text-base font-medium text-primary">PAWS STYLIST DOMESTIC PETS GROOMING LLC</span>
                 </div>
                 {/* <div className="flex items-center space-x-2">
                   <MdBusiness className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
                   <span className="text-xs font-medium"> بوس  ستيلسة  دمستك  بطس  غرومينج  لك </span>
                 </div> */}
                 <div className="flex items-center space-x-2">
-                  <MdEmail className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
+                  <MdEmail className="w-4 h-4 text-secondary hover:text-primary transition-colors" />
                   <a 
                     href="mailto:info@pawsstylist.com" 
-                    className="text-base hover:text-primary transition-colors"
+                    className="text-base text-primary hover:text-secondary transition-colors"
                   >
                     info@pawsstylist.com
                   </a>
