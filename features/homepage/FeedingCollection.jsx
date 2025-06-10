@@ -82,7 +82,6 @@ const FeedingCollection = () => {
 
   const featuredProduct = products.find(p => p.featured) || products[0];
   const regularProducts = products.filter(p => !p.featured) || products.slice(1, 5);
-  console.log({featuredProduct});
 
   return (
     <>
@@ -127,11 +126,10 @@ const FeedingCollection = () => {
               {regularProducts.map((product) => (
                 <div key={product.id} className="group relative overflow-hidden rounded-xl cursor-pointer h-[280px] md:h-[290px]">
                   <div className="relative w-full h-full">
-                    <Image
+                    <img
                       src={product.image}
                       alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover h-full w-full transition-transform duration-500 group-hover:scale-105"
                     />
                     {/* Always visible title */}
                     <div className="absolute bottom-0 left-0 right-0 group-hover:opacity-0 transition-opacity duration-300">

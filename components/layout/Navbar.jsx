@@ -125,7 +125,7 @@ const Navbar = () => {
 
   return (
     <>
-      <SearchBar isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      {/* <SearchBar isOpen={searchOpen} onClose={() => setSearchOpen(false)} /> */}
       <header 
         className={`fixed w-full lg:px-32 md:px-16 px-4 z-40 transition-all duration-500 ${
           isScrollingUp ? 'translate-y-0' : '-translate-y-full'
@@ -135,27 +135,30 @@ const Navbar = () => {
         <Container>
           <div className="flex items-center justify-between h-20">
             {/* Left Side - Menu/Contact Info */}
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
               <button 
                 className="md:hidden text-cream-50 hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 <FiMenu className="w-6 h-6" />
               </button>
+              <Link href="/" className="md:flex hidden">
+                <img src="/logo.png" alt="PAWS" className="h-16" />
+              </Link>
               <div className="hidden md:flex flex-col items-start space-x4 text-cream-50">
                 <div className="flex items-center space-x-2">
-                  <MdBusiness className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
-                  <span className="text-xs font-medium">PAWS STYLIST DOMESTIC PETS GROOMING LLC</span>
+                  <MdBusiness className="w-4 h-4 text-secondary hover:text-primary transition-colors" />
+                  <span className="text-base font-medium text-primary">PAWS STYLIST DOMESTIC PETS GROOMING LLC</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                   <MdBusiness className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
                   <span className="text-xs font-medium"> بوس  ستيلسة  دمستك  بطس  غرومينج  لك </span>
-                </div>
+                </div> */}
                 <div className="flex items-center space-x-2">
-                  <MdEmail className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
+                  <MdEmail className="w-4 h-4 text-secondary hover:text-primary transition-colors" />
                   <a 
                     href="mailto:info@pawsstylist.com" 
-                    className="text-xs hover:text-primary transition-colors"
+                    className="text-base text-primary hover:text-secondary transition-colors"
                   >
                     info@pawsstylist.com
                   </a>
@@ -164,14 +167,14 @@ const Navbar = () => {
             </div>
 
             {/* Center - Logo */}
-            <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+            {/* <Link href="/" className="absolute left-1/2 -translate-x-1/2">
               <img src="/logo.png" alt="PAWS" className="h-12" />
-            </Link>
+            </Link> */}
 
             {/* Right Side - Search */}
             <a href="/services">
               <Button 
-                variant="outline"
+                variant="primary"
               >
                 Book Appointment
               </Button>

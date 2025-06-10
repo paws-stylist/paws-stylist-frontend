@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaShoppingCart, FaBox, FaStickyNote, FaCog, FaCalendarAlt, FaCreditCard, FaCalculator } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaShoppingCart, FaBox, FaStickyNote, FaCog } from 'react-icons/fa';
 import Button from './Button';
 import { usePost } from '../../hooks/useApi';
+import { validateBuyingForm } from '../../utils/validation';
 
 const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -14,12 +15,14 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
       street: '',
       city: '',
       state: '',
-      zipCode: '',
       country: 'UAE'
     },
     orderDate: '',
     orderNotes: ''
   });
+
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [buyingState, triggerPurchase] = usePost('/orders', {
     showSuccessToast: true,
@@ -32,6 +35,18 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Clear error for this field when user starts typing
+    if (formErrors[name] || (name.startsWith('deliveryAddress.') && formErrors[name.split('.')[1]])) {
+      const newErrors = { ...formErrors };
+      if (name.startsWith('deliveryAddress.')) {
+        delete newErrors[name.split('.')[1]];
+      } else {
+        delete newErrors[name];
+      }
+      setFormErrors(newErrors);
+    }
+
     if (name.startsWith('deliveryAddress.')) {
       const field = name.split('.')[1];
       setFormData(prev => ({
@@ -51,23 +66,29 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    formData.orderDate = new Date().toISOString();
     
-    // Validate required fields
-    if (!formData.customerName || !formData.contactNumber || !formData.email || 
-        !formData.deliveryAddress.street || !formData.deliveryAddress.city || 
-        !formData.deliveryAddress.state || !formData.deliveryAddress.zipCode || 
-        !formData.orderDate) {
-      alert('Please fill in all required fields');
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
+    // Set order date
+    const updatedFormData = {
+      ...formData,
+      orderDate: new Date().toISOString()
+    };
+    
+    // Validate form data
+    const validation = validateBuyingForm(updatedFormData);
+    
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
+      setIsSubmitting(false);
       return;
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address');
-      return;
-    }
+    // Clear any previous errors
+    setFormErrors({});
 
     // Calculate pricing
     const currentPrice = product.salePrice;
@@ -76,20 +97,25 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
     const unitPrice = hasPromotion && promotionPrice ? promotionPrice : currentPrice;
     const subtotal = unitPrice * quantity;
     
+    // Calculate totals with tax and delivery
+    const taxAmount = formData.taxAmount ? parseFloat(formData.taxAmount) : 0;
+    const deliveryFee = formData.deliveryFee ? parseFloat(formData.deliveryFee) : 0;
+    const totalAmount = subtotal + taxAmount + deliveryFee;
 
     try {
       await triggerPurchase({
-        ...formData,
+        ...updatedFormData,
         products: [{
           product: product._id,
           quantity: quantity
         }],
-        orderDate: new Date(formData.orderDate).toISOString(),
         subtotal: subtotal,
         totalAmount: totalAmount
       });
     } catch (error) {
       console.error('Purchase error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -127,10 +153,14 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
   const deliveryFee = formData.deliveryFee ? parseFloat(formData.deliveryFee) : 0;
   const totalAmount = subtotal + taxAmount + deliveryFee;
 
-  // Get minimum date (tomorrow)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().slice(0, 16);
+  const renderFieldError = (fieldName) => {
+    if (formErrors[fieldName]) {
+      return (
+        <p className="text-red-500 text-xs mt-1">{formErrors[fieldName]}</p>
+      );
+    }
+    return null;
+  };
 
   return (
     <motion.div
@@ -178,11 +208,14 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
               name="orderType"
               value={formData.orderType}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                formErrors.orderType ? 'border-red-500' : 'border-gray-300'
+              }`}
             >
               <option value="normal">Normal Delivery</option>
               <option value="urgent">Urgent Delivery</option>
             </select>
+            {renderFieldError('orderType')}
           </motion.div>
 
           {/* Customer Name */}
@@ -196,10 +229,13 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
               name="customerName"
               value={formData.customerName}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                formErrors.customerName ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Enter your full name"
               required
             />
+            {renderFieldError('customerName')}
           </motion.div>
 
           {/* Contact Details */}
@@ -214,10 +250,13 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Enter your email address"
                 required
               />
+              {renderFieldError('email')}
             </motion.div>
 
             <motion.div variants={itemVariants}>
@@ -230,10 +269,13 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
                 name="contactNumber"
                 value={formData.contactNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.contactNumber ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="+971 50 123 4567"
                 required
               />
+              {renderFieldError('contactNumber')}
             </motion.div>
           </div>
 
@@ -244,53 +286,62 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
               Delivery Address *
             </label>
             <div className="space-y-3">
-              <input
-                type="text"
-                name="deliveryAddress.street"
-                value={formData.deliveryAddress.street}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                placeholder="Street Address *"
-                required
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
                 <input
                   type="text"
-                  name="deliveryAddress.city"
-                  value={formData.deliveryAddress.city}
+                  name="deliveryAddress.street"
+                  value={formData.deliveryAddress.street}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder="City *"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                    formErrors.street ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Street Address *"
                   required
                 />
-                <input
-                  type="text"
-                  name="deliveryAddress.state"
-                  value={formData.deliveryAddress.state}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder="State/Emirate *"
-                  required
-                />
+                {renderFieldError('street')}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  name="deliveryAddress.zipCode"
-                  value={formData.deliveryAddress.zipCode}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder="Zip Code *"
-                  required
-                />
+                <div>
+                  <input
+                    type="text"
+                    name="deliveryAddress.city"
+                    value={formData.deliveryAddress.city}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                      formErrors.city ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="City *"
+                    required
+                  />
+                  {renderFieldError('city')}
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    name="deliveryAddress.state"
+                    value={formData.deliveryAddress.state}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                      formErrors.state ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="State/Emirate *"
+                    required
+                  />
+                  {renderFieldError('state')}
+                </div>
+              </div>
+              <div>
                 <input
                   type="text"
                   name="deliveryAddress.country"
                   value={formData.deliveryAddress.country}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                    formErrors.country ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Country"
                 />
+                {renderFieldError('country')}
               </div>
             </div>
           </motion.div>
@@ -306,9 +357,12 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
               value={formData.orderNotes}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none ${
+                formErrors.orderNotes ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Any special instructions or notes..."
             />
+            {renderFieldError('orderNotes')}
           </motion.div>
 
           {/* Order Summary */}
@@ -378,9 +432,9 @@ const BuyingForm = ({ product, quantity = 1, onClose, onSuccess }) => {
               type="submit"
               variant="primary"
               className="w-full py-3 text-base font-semibold"
-              disabled={buyingState.loading}
+              disabled={buyingState.loading || isSubmitting}
             >
-              {buyingState.loading ? (
+              {buyingState.loading || isSubmitting ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Processing...

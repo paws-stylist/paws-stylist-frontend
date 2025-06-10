@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { BsArrowRight } from 'react-icons/bs';
 import { FaPaw } from "react-icons/fa";
@@ -20,18 +19,6 @@ const featuredShops = [
     },
     {
         id: 3,
-        name: "Boarding",
-        image: "/shops/boarding.webp",
-        link: "/services/boarding"
-    },
-    {
-        id: 4,
-        name: "Training",
-        image: "/shops/training.webp",
-        link: "/services/training"
-    },
-    {
-        id: 5,
         name: "Day Care",
         image: "/shops/daycare.webp",
         link: "/services/daycare"
@@ -80,8 +67,6 @@ const Shop = () => {
               src={shopContent.image}
               alt="Luxury Cat Decor"
               className="object-cover rounded-2xl shadow-xl h-full w-full"
-              decoding="async"
-              loading="lazy"
             />
             {/* Decorative Elements */}
             <motion.div 
@@ -206,11 +191,10 @@ const Shop = () => {
               whileHover={{ y: -5 }}
             >
               <div className="relative overflow-hidden rounded-full h-40 w-40 shadow-lg">
-                <Image 
+                <img
                   src={shop.image} 
                   alt={shop.name} 
-                  fill
-                  className='object-cover transition-transform duration-300 group-hover:scale-110' 
+                  className='object-cover h-full w-full transition-transform duration-300 group-hover:scale-110' 
                 />
               </div>
               <motion.h3 

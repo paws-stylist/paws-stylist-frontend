@@ -64,13 +64,9 @@ const SingleProductCard = ({ data, type, params }) => {
     : (data.description || data.serviceDetail || data.details || '');
 
   const handleBookingSuccess = (bookingData) => {
-    console.log('Booking successful:', bookingData);
-    // You can add additional success handling here
   };
 
   const handleBuyingSuccess = (buyingData) => {
-    console.log('Purchase successful:', buyingData);
-    // You can add additional success handling here
   };
 
   const containerVariants = {
