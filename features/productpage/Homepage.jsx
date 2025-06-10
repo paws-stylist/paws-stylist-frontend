@@ -3,9 +3,7 @@ import React from 'react'
 import SingleProductCard from './SingleProductCard'
 import { useGet } from '../../hooks/useApi'
 
-const Homepage = ({ params, type }) => {
-  console.log('SingleProductPage params:', params, 'type:', type);
-  
+const Homepage = ({ params, type }) => {  
   // Extract URL parameters
   const isProduct = type === 'product'
   const isService = type === 'service'
@@ -13,9 +11,7 @@ const Homepage = ({ params, type }) => {
   // Get the slug from params
   const slug = isProduct ? params?.product : params?.service;
   const categoryType = isProduct ? params?.['product-type'] : params?.['service-type'];
-  
-  console.log('Extracted slug:', slug, 'categoryType:', categoryType);
-  
+    
   // Fetch data from API - get all items then filter by slug
   const { data: allProducts, loading: productsLoading, error: productsError } = useGet('/products', {
     immediate: isProduct,
@@ -34,13 +30,10 @@ const Homepage = ({ params, type }) => {
   if (isProduct) {
     loading = productsLoading
     error = productsError
-    
-    console.log('All products from API:', allProducts);
-    
+        
     if (allProducts && Array.isArray(allProducts) && slug) {
       // Find product by matching slug first
       data = allProducts.find(p => p.slug === slug);
-      console.log('Found product by slug:', data);
       
       // Fallback: try to find by name or other fields if slug doesn't match
       if (!data) {
@@ -49,25 +42,20 @@ const Homepage = ({ params, type }) => {
           (p.title && p.title.toLowerCase().replace(/\s+/g, '-') === slug) ||
           (p.productDetail && p.productDetail.toLowerCase().replace(/\s+/g, '-') === slug)
         );
-        console.log('Found product by name/title fallback:', data);
       }
     }
     
     // Ensure we have a valid product object, not a category
     if (data && !data.productDetail && !data.name && !data.salePrice) {
-      console.error('Found object is not a valid product:', data);
       data = null; // Reset if it's not a product object
     }
   } else if (isService) {
     loading = servicesLoading
     error = servicesError
     
-    console.log('All services from API:', allServices);
-    
     if (allServices && Array.isArray(allServices) && slug) {
       // Find service by matching slug first
       data = allServices.find(s => s.slug === slug);
-      console.log('Found service by slug:', data);
       
       // Fallback: try to find by name or other fields if slug doesn't match
       if (!data) {
@@ -76,7 +64,6 @@ const Homepage = ({ params, type }) => {
           (s.title && s.title.toLowerCase().replace(/\s+/g, '-') === slug) ||
           (s.serviceName && s.serviceName.toLowerCase().replace(/\s+/g, '-') === slug)
         );
-        console.log('Found service by name fallback:', data);
       }
     }
     
@@ -87,7 +74,6 @@ const Homepage = ({ params, type }) => {
     }
   }
 
-  console.log('Final data found:', data);
 
   // Show loading state
   if (loading) {

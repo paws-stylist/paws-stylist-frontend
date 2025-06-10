@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCalendarAlt, FaClock, FaUser, FaEnvelope, FaPhone, FaPaw, FaStickyNote, FaMapMarkerAlt, FaVenusMars, FaCog } from 'react-icons/fa';
+import { FaCalendarAlt, FaUser, FaEnvelope, FaPhone, FaPaw, FaStickyNote, FaMapMarkerAlt, FaVenusMars, FaCog } from 'react-icons/fa';
 import Button from './Button';
 import { usePost } from '../../hooks/useApi';
+import { validateAppointmentForm } from '../../utils/validation';
 
 const BookingForm = ({ service, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,6 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
       street: '',
       city: '',
       state: '',
-      zipCode: '',
       country: 'UAE'
     },
     contactNumber: '',
@@ -24,6 +24,9 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
     detail: '',
     afterServiceRemarks: ''
   });
+
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [bookingState, triggerBooking] = usePost('/appointments', {
     showSuccessToast: true,
@@ -36,6 +39,18 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Clear error for this field when user starts typing
+    if (formErrors[name] || (name.startsWith('locationDetail.') && formErrors[name.split('.')[1]])) {
+      const newErrors = { ...formErrors };
+      if (name.startsWith('locationDetail.')) {
+        delete newErrors[name.split('.')[1]];
+      } else {
+        delete newErrors[name];
+      }
+      setFormErrors(newErrors);
+    }
+
     if (name.startsWith('locationDetail.')) {
       const field = name.split('.')[1];
       setFormData(prev => ({
@@ -56,30 +71,22 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate required fields
-    if (!formData.contactName || !formData.gender || !formData.locationDetail.street || 
-        !formData.locationDetail.city || !formData.locationDetail.state || 
-        !formData.locationDetail.zipCode || !formData.contactNumber || 
-        !formData.email || !formData.petType || !formData.petBreed || 
-        !formData.appointmentDate) {
-      alert('Please fill in all required fields');
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
+    // Validate form data
+    const validation = validateAppointmentForm(formData);
+    
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
+      setIsSubmitting(false);
       return;
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address');
-      return;
-    }
-
-    // Validate appointment date (must be in the future)
-    const selectedDate = new Date(formData.appointmentDate);
-    const now = new Date();
-    if (selectedDate <= now) {
-      alert('Please select a future date and time');
-      return;
-    }
+    // Clear any previous errors
+    setFormErrors({});
 
     try {
       await triggerBooking({
@@ -89,6 +96,8 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
       });
     } catch (error) {
       console.error('Booking error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -117,6 +126,15 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().slice(0, 16);
+
+  const renderFieldError = (fieldName) => {
+    if (formErrors[fieldName]) {
+      return (
+        <p className="text-red-500 text-xs mt-1">{formErrors[fieldName]}</p>
+      );
+    }
+    return null;
+  };
 
   return (
     <motion.div
@@ -164,11 +182,14 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               name="appointmentType"
               value={formData.appointmentType}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                formErrors.appointmentType ? 'border-red-500' : 'border-gray-300'
+              }`}
             >
               <option value="normal">Normal</option>
               <option value="urgent">Urgent</option>
             </select>
+            {renderFieldError('appointmentType')}
           </motion.div>
 
           {/* Contact Name and Gender */}
@@ -183,10 +204,13 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 name="contactName"
                 value={formData.contactName}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.contactName ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Enter your full name"
                 required
               />
+              {renderFieldError('contactName')}
             </motion.div>
 
             <motion.div variants={itemVariants}>
@@ -198,7 +222,9 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 name="gender"
                 value={formData.gender}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.gender ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
               >
                 <option value="">Select Gender</option>
@@ -206,6 +232,7 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 <option value="female">Female</option>
                 <option value="other">Other</option>
               </select>
+              {renderFieldError('gender')}
             </motion.div>
           </div>
 
@@ -221,10 +248,13 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Enter your email address"
                 required
               />
+              {renderFieldError('email')}
             </motion.div>
 
             <motion.div variants={itemVariants}>
@@ -237,10 +267,13 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 name="contactNumber"
                 value={formData.contactNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.contactNumber ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="+971 50 123 4567"
                 required
               />
+              {renderFieldError('contactNumber')}
             </motion.div>
           </div>
 
@@ -251,53 +284,62 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               Location Details *
             </label>
             <div className="space-y-3">
-              <input
-                type="text"
-                name="locationDetail.street"
-                value={formData.locationDetail.street}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                placeholder="Street Address *"
-                required
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
                 <input
                   type="text"
-                  name="locationDetail.city"
-                  value={formData.locationDetail.city}
+                  name="locationDetail.street"
+                  value={formData.locationDetail.street}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder="City *"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                    formErrors.street ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Street Address *"
                   required
                 />
-                <input
-                  type="text"
-                  name="locationDetail.state"
-                  value={formData.locationDetail.state}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder="State/Emirate *"
-                  required
-                />
+                {renderFieldError('street')}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  name="locationDetail.zipCode"
-                  value={formData.locationDetail.zipCode}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder="Zip Code *"
-                  required
-                />
+                <div>
+                  <input
+                    type="text"
+                    name="locationDetail.city"
+                    value={formData.locationDetail.city}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                      formErrors.city ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="City *"
+                    required
+                  />
+                  {renderFieldError('city')}
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    name="locationDetail.state"
+                    value={formData.locationDetail.state}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                      formErrors.state ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="State/Emirate *"
+                    required
+                  />
+                  {renderFieldError('state')}
+                </div>
+              </div>
+              <div>
                 <input
                   type="text"
                   name="locationDetail.country"
                   value={formData.locationDetail.country}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                    formErrors.country ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Country"
                 />
+                {renderFieldError('country')}
               </div>
             </div>
           </motion.div>
@@ -313,7 +355,9 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 name="petType"
                 value={formData.petType}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.petType ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
               >
                 <option value="">Select Pet Type</option>
@@ -323,6 +367,7 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 <option value="rabbit">Rabbit</option>
                 <option value="other">Other</option>
               </select>
+              {renderFieldError('petType')}
             </motion.div>
 
             <motion.div variants={itemVariants}>
@@ -335,10 +380,13 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
                 name="petBreed"
                 value={formData.petBreed}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                  formErrors.petBreed ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Enter pet breed"
                 required
               />
+              {renderFieldError('petBreed')}
             </motion.div>
           </div>
 
@@ -354,9 +402,12 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               value={formData.appointmentDate}
               onChange={handleInputChange}
               min={minDate}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                formErrors.appointmentDate ? 'border-red-500' : 'border-gray-300'
+              }`}
               required
             />
+            {renderFieldError('appointmentDate')}
           </motion.div>
 
           {/* Additional Details */}
@@ -370,9 +421,12 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               value={formData.detail}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none ${
+                formErrors.detail ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Any special requirements or notes..."
             />
+            {renderFieldError('detail')}
           </motion.div>
 
           {/* Service Summary */}
@@ -396,9 +450,9 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
               type="submit"
               variant="primary"
               className="w-full py-3 text-base font-semibold"
-              disabled={bookingState.loading}
+              disabled={bookingState.loading || isSubmitting}
             >
-              {bookingState.loading ? (
+              {bookingState.loading || isSubmitting ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Booking...

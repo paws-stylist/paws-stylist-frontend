@@ -82,7 +82,6 @@ const FeedingCollection = () => {
 
   const featuredProduct = products.find(p => p.featured) || products[0];
   const regularProducts = products.filter(p => !p.featured) || products.slice(1, 5);
-  console.log({featuredProduct});
 
   return (
     <>

@@ -4,15 +4,12 @@ import { FaPaw, FaHeart, FaStar, FaCut, FaHome, FaCar } from 'react-icons/fa';
 import Button from '@/components/ui/Button';
 import { useGet } from '@/hooks/useApi';
 
-const Hero = ({ type, isService = false }) => {
-  console.log({type, isService});
-  
+const Hero = ({ type, isService = false }) => {  
   // Fetch category data based on whether it's a service or product
   const { data: categories, loading: categoriesLoading } = useGet(
     isService ? '/service-categories/active' : '/product-categories/active',
     { immediate: true, showErrorToast: false }
   );
-  console.log({categories});
 
   // Find the current category based on the slug/type
   let currentCategory = null;

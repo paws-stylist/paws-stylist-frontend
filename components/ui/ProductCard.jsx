@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaHeart } from 'react-icons/fa';
 import Button from './Button';
 
 const ProductCard = ({ isService, product }) => {
@@ -19,7 +18,6 @@ const ProductCard = ({ isService, product }) => {
     category,
     subCategory
   } = product;
-  console.log({product})
 
   // Check if promotion is active
   const isPromotionActive = () => {

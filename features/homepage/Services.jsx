@@ -45,7 +45,6 @@ const Services = () => {
   };
 
   const handleBookingSuccess = (bookingData) => {
-    console.log('Booking successful:', bookingData);
     setShowBookingForm(false);
   };
 
