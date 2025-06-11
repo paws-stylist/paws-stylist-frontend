@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Button from './Button';
+import AddToCartButton from './AddToCartButton';
 
 const ProductCard = ({ isService, product }) => {
   const {
@@ -56,12 +57,6 @@ const ProductCard = ({ isService, product }) => {
           alt={name}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
         />
-        {/* Quick Action Overlay */}
-        {/* <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <Button variant="outline" className="bg-white mx-2">
-            <FaShoppingCart className="w-5 h-5" />
-          </Button>
-        </div> */}
       </div>
 
       {/* Content Container */}
@@ -87,12 +82,20 @@ const ProductCard = ({ isService, product }) => {
           <span className="text-gray-500">AED</span>
         </div>
 
-        {/* See Details Button */}
-        <a href={`${isService ? `/services/` : `/products/`}${category?.slug}/${slug}`} className="pt-2">
-          <Button variant="outline" className="w-full">
-            See Product Details
-          </Button>
-        </a>
+        {/* Action Buttons */}
+        <div className="space-y-3 pt-2">
+          {/* Add to Cart Button - Only for products and in-stock items */}
+          {!isService && inStock && (
+            <AddToCartButton product={product} />
+          )}
+
+          {/* See Details Button */}
+          <a href={`${isService ? `/services/` : `/products/`}${category?.slug}/${slug}`}>
+            <Button variant="outline" className="w-full">
+              {isService ? 'View Service Details' : 'View Product Details'}
+            </Button>
+          </a>
+        </div>
       </div>
     </motion.div>
   );
