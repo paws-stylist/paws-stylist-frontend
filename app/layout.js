@@ -3,6 +3,8 @@ import "./globals.css";
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ErrorProvider } from '@/contexts/ErrorContext';
+import { CartProvider } from '@/contexts/CartContext';
+import CartManager from '@/components/ui/CartManager';
 
 export const metadata = {
   title: " PAWS STYLIST DOMESTIC PETS GROOMING L.L.C",
@@ -33,15 +35,19 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`font-step overflow-x-hidden w-screen`}>
         <ErrorProvider>
-          <div className='sticky top-0 z-50'>
-            <Navbar />
-          </div>
-          <div>
-            {children}
-          </div>
-          <div>
-            <Footer />
-          </div>
+          <CartProvider>
+            <div className='sticky top-0 z-50'>
+              <Navbar />
+            </div>
+            <div>
+              {children}
+            </div>
+            <div>
+              <Footer />
+            </div>
+            {/* Cart functionality components */}
+            <CartManager />
+          </CartProvider>
         </ErrorProvider>
       </body>
       <GoogleTagManager gtmId="GTM-" />
