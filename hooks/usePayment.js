@@ -197,6 +197,34 @@ export const useUpdateOrderStatus = () => {
   };
 };
 
+// Hook for creating cash on delivery orders
+export const useCreateCashOnDeliveryOrder = () => {
+  const [createOrderState, triggerCreateOrder] = usePost('/orders', {
+    showErrorToast: false,
+    showSuccessToast: false
+  });
+
+  const createCashOnDeliveryOrder = useCallback(async (cartItems, customerInfo, billingAddress) => {
+    try {
+      const orderData = createOrderData(cartItems, customerInfo, billingAddress);
+      // Override payment method and status for cash on delivery
+      orderData.paymentMethod = 'cash_on_delivery';
+      orderData.paymentStatus = 'pending';
+      
+      const response = await triggerCreateOrder(orderData);
+      return response;
+    } catch (error) {
+      toast.error('Failed to create order. Please try again.');
+      throw error;
+    }
+  }, [triggerCreateOrder]);
+
+  return {
+    ...createOrderState,
+    createCashOnDeliveryOrder
+  };
+};
+
 // Complete payment flow hook
 export const useCompletePaymentFlow = () => {
   const [state, setState] = useState({
@@ -392,5 +420,6 @@ export default {
   useOrderPayments,
   usePaymentStatistics,
   useCompletePaymentFlow,
-  useUpdateOrderStatus
+  useUpdateOrderStatus,
+  useCreateCashOnDeliveryOrder
 }; 
