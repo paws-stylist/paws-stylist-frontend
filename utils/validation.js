@@ -140,22 +140,14 @@ export const validatePetBreed = (value) => {
   return null;
 };
 
-export const validateAppointmentDate = (value) => {
+export const validateSlotId = (value) => {
   if (!value) {
-    return 'Appointment date is required';
+    return 'Please select an appointment slot';
   }
   
-  const selectedDate = new Date(value);
-  const now = new Date();
-  
-  // Check if date is valid
-  if (isNaN(selectedDate.getTime())) {
-    return 'Please enter a valid date';
-  }
-  
-  // Check if date is in the future
-  if (selectedDate <= now) {
-    return 'Appointment date must be in the future';
+  // Basic ObjectId format validation (24 character hex string)
+  if (typeof value !== 'string' || !/^[0-9a-fA-F]{24}$/.test(value)) {
+    return 'Invalid slot selection';
   }
   
   return null;
@@ -223,8 +215,8 @@ export const validateAppointmentForm = (formData) => {
   const petBreedError = validatePetBreed(formData.petBreed);
   if (petBreedError) errors.petBreed = petBreedError;
 
-  const appointmentDateError = validateAppointmentDate(formData.appointmentDate);
-  if (appointmentDateError) errors.appointmentDate = appointmentDateError;
+  const slotIdError = validateSlotId(formData.slotId);
+  if (slotIdError) errors.slotId = slotIdError;
 
   const detailError = validateDetail(formData.detail);
   if (detailError) errors.detail = detailError;

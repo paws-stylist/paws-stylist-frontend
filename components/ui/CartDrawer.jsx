@@ -190,6 +190,7 @@ const CartDrawer = ({ isOpen, onClose, onCheckout }) => {
                                 <button
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                   className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                                  disabled={item.quantity >= (item.maxAllowed || 5)}
                                 >
                                   <FaPlus className="w-3 h-3 text-gray-600" />
                                 </button>
@@ -203,6 +204,16 @@ const CartDrawer = ({ isOpen, onClose, onCheckout }) => {
                                 <FaTrash className="w-4 h-4" />
                               </button>
                             </div>
+
+                            {/* Quantity limit info */}
+                            {item.maxAllowed && (
+                              <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                                <span>Limit: {item.quantity}/{item.maxAllowed}</span>
+                                {item.quantity >= item.maxAllowed && (
+                                  <span className="text-amber-600">Max reached</span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.div>
