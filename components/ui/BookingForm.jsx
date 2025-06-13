@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaCalendarAlt, FaUser, FaEnvelope, FaPhone, FaPaw, FaStickyNote, FaMapMarkerAlt, FaVenusMars, FaCog } from 'react-icons/fa';
 import Button from './Button';
+import SlotSelector from './SlotSelector';
 import { usePost } from '../../hooks/useApi';
 import { validateAppointmentForm } from '../../utils/validation';
 
@@ -20,11 +21,12 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
     email: '',
     petType: '',
     petBreed: '',
-    appointmentDate: '',
+    slotId: '', // Replace appointmentDate with slotId
     detail: '',
     afterServiceRemarks: ''
   });
 
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -68,6 +70,23 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
     }
   };
 
+  // Handle slot selection
+  const handleSlotSelect = (slot) => {
+    console.log('Slot selected in BookingForm:', slot);
+    setSelectedSlot(slot);
+    setFormData(prev => ({
+      ...prev,
+      slotId: slot._id
+    }));
+    
+    // Clear slot selection error if exists
+    if (formErrors.slotId) {
+      const newErrors = { ...formErrors };
+      delete newErrors.slotId;
+      setFormErrors(newErrors);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -76,7 +95,7 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
     
     setIsSubmitting(true);
     
-    // Validate form data
+    // Validate form data (now includes slotId validation)
     const validation = validateAppointmentForm(formData);
     
     if (!validation.isValid) {
@@ -92,7 +111,7 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
       await triggerBooking({
         ...formData,
         services: [service._id], // Auto-populate with current service
-        appointmentDate: new Date(formData.appointmentDate).toISOString()
+        // Note: Don't send appointmentDate when using slotId
       });
     } catch (error) {
       console.error('Booking error:', error);
@@ -121,11 +140,6 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
       transition: { duration: 0.3, ease: "easeOut" }
     }
   };
-
-  // Get minimum date (tomorrow)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().slice(0, 16);
 
   const renderFieldError = (fieldName) => {
     if (formErrors[fieldName]) {
@@ -390,24 +404,14 @@ const BookingForm = ({ service, onClose, onSuccess }) => {
             </motion.div>
           </div>
 
-          {/* Appointment Date */}
+          {/* Appointment Slot Selection - Replace datetime input */}
           <motion.div variants={itemVariants}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <FaCalendarAlt className="inline w-4 h-4 mr-2 text-primary-600" />
-              Preferred Date & Time *
-            </label>
-            <input
-              type="datetime-local"
-              name="appointmentDate"
-              value={formData.appointmentDate}
-              onChange={handleInputChange}
-              min={minDate}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
-                formErrors.appointmentDate ? 'border-red-500' : 'border-gray-300'
-              }`}
-              required
+            <SlotSelector
+              selectedSlotId={formData.slotId}
+              onSlotSelect={handleSlotSelect}
+              className={formErrors.slotId ? 'border border-red-500 rounded-lg p-4' : ''}
             />
-            {renderFieldError('appointmentDate')}
+            {renderFieldError('slotId')}
           </motion.div>
 
           {/* Additional Details */}

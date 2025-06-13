@@ -21,7 +21,7 @@ import {
 } from 'react-icons/fa';
 import Button from './Button';
 import { useCart } from '../../contexts/CartContext';
-import { useCompletePaymentFlow, usePaymentConfig } from '../../hooks/usePayment';
+import { useCompletePaymentFlow, usePaymentConfig, useCreateCashOnDeliveryOrder } from '../../hooks/usePayment';
 import { 
   validateCustomerInfo, 
   validateBillingAddress,
@@ -64,6 +64,7 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
     loading, 
     error: paymentError 
   } = useCompletePaymentFlow();
+  const { createCashOnDeliveryOrder } = useCreateCashOnDeliveryOrder();
 
   // Get cities and emirates from backend config or fallback to hardcoded ones
   const supportedCities = paymentConfig?.data?.businessInfo?.supportedCities || UAE_CITIES;
@@ -285,6 +286,32 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
       }
     } finally {
       setProcessingPayment(false);
+    }
+  };
+
+  const handleCashOnDelivery = async () => {
+    if (!validateStep1()) return;
+    
+    try {
+      const orderResponse = await createCashOnDeliveryOrder(
+        items,
+        formData.customerInfo,
+        formData.billingAddress
+      );
+
+      clearCart();
+      toast.success('Order placed successfully! You will pay on delivery.');
+      
+      if (onSuccess) {
+        onSuccess({
+          orderId: orderResponse.data?._id || orderResponse.data?.id,
+          paymentStatus: 'pending',
+          paymentMethod: 'cash_on_delivery'
+        });
+      }
+    } catch (error) {
+      console.error('Cash on delivery error:', error);
+      toast.error('Failed to place order. Please try again.');
     }
   };
 
@@ -519,7 +546,7 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
       )}
 
       {/* Form Navigation */}
-      <div className="flex justify-between pt-6 border-t border-gray-200">
+      <div className="flex justify-between pt-6 border-t border-gray-200 mt-6">
         <div>
           {currentFormStep === 2 && (
             <Button
@@ -543,7 +570,7 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
           )}
         </div>
 
-        <div className="space-x-3">
+        <div className="space-y-2">
           <Button
             type="button"
             variant="outline"
@@ -554,14 +581,23 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
           </Button>
           
           {currentFormStep === 1 ? (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleNextStep}
-              disabled={loading}
-            >
-              Continue to Payment
-            </Button>
+            <div className="flex space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCashOnDelivery}
+                disabled={loading || processingPayment}
+              >
+                Pay Cash On Delivery
+              </Button>
+              <Button
+                type="button"
+                variant="disabled"
+                onClick={handleNextStep}
+              >
+                Pay Online
+              </Button>
+            </div>
           ) : (
             <Button
               type="submit"

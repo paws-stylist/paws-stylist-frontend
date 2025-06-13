@@ -83,10 +83,10 @@ const ProductCard = ({ isService, product }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-3 pt-2">
+        <div className="space-y-4 pt-2">
           {/* Add to Cart Button - Only for products and in-stock items */}
           {!isService && inStock && (
-            <AddToCartButton product={product} />
+            <AddToCartButton className='mb-2' product={product} />
           )}
 
           {/* See Details Button */}

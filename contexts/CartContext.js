@@ -16,6 +16,37 @@ const CART_ACTIONS = {
 // UAE VAT rate (5%)
 const UAE_VAT_RATE = 0.05;
 
+// Maximum quantity limits
+const MAX_QUANTITY_LIMIT = 5;
+
+// Helper function to get maximum allowed quantity for a product
+const getMaxAllowedQuantity = (product) => {
+  const stockQuantity = product.stockQuantity || product.quantity || 999;
+  return Math.min(MAX_QUANTITY_LIMIT, stockQuantity);
+};
+
+// Helper function to validate quantity limits
+const validateQuantityLimit = (product, requestedQuantity, currentQuantity = 0) => {
+  const maxAllowed = getMaxAllowedQuantity(product);
+  const totalQuantity = currentQuantity + requestedQuantity;
+  
+  if (totalQuantity > maxAllowed) {
+    const availableToAdd = maxAllowed - currentQuantity;
+    return {
+      isValid: false,
+      maxAllowed,
+      availableToAdd,
+      reason: availableToAdd <= 0 
+        ? 'maximum_reached' 
+        : maxAllowed === MAX_QUANTITY_LIMIT 
+          ? 'max_limit' 
+          : 'stock_limit'
+    };
+  }
+  
+  return { isValid: true, maxAllowed };
+};
+
 // Cart reducer
 const cartReducer = (state, action) => {
   switch (action.type) {
@@ -26,13 +57,29 @@ const cartReducer = (state, action) => {
       if (existingItemIndex >= 0) {
         // Update quantity if item already exists
         const updatedItems = [...state.items];
+        const currentQuantity = updatedItems[existingItemIndex].quantity;
+        
+        // Validate quantity limits
+        const validation = validateQuantityLimit(product, quantity, currentQuantity);
+        if (!validation.isValid) {
+          // Return current state without changes - error handling in addToCart
+          return state;
+        }
+        
         updatedItems[existingItemIndex].quantity += quantity;
+        updatedItems[existingItemIndex].maxAllowed = validation.maxAllowed;
         return {
           ...state,
           items: updatedItems
         };
       } else {
         // Add new item
+        const validation = validateQuantityLimit(product, quantity);
+        if (!validation.isValid) {
+          // Return current state without changes - error handling in addToCart
+          return state;
+        }
+        
         const newItem = {
           id: product._id || product.id,
           name: product.productDetail || product.serviceName || product.name,
@@ -46,7 +93,9 @@ const cartReducer = (state, action) => {
           quantity: quantity,
           unit: product.unit || 'piece',
           category: product.category,
-          subCategory: product.subCategory
+          subCategory: product.subCategory,
+          stockQuantity: product.stockQuantity || product.quantity,
+          maxAllowed: validation.maxAllowed
         };
         
         return {
@@ -74,9 +123,15 @@ const cartReducer = (state, action) => {
       
       return {
         ...state,
-        items: state.items.map(item =>
-          item.id === id ? { ...item, quantity } : item
-        )
+        items: state.items.map(item => {
+          if (item.id === id) {
+            // Validate quantity limits for updates
+            const maxAllowed = item.maxAllowed || MAX_QUANTITY_LIMIT;
+            const finalQuantity = Math.min(quantity, maxAllowed);
+            return { ...item, quantity: finalQuantity };
+          }
+          return item;
+        })
       };
     }
 
@@ -134,14 +189,53 @@ export const CartProvider = ({ children }) => {
     }
   }, [state]);
 
-  // Cart actions
+  // Cart actions with quantity validation
   const addToCart = (product, quantity = 1) => {
+    const existingItem = state.items.find(item => item.id === (product._id || product.id));
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+    
+    // Validate quantity limits
+    const validation = validateQuantityLimit(product, quantity, currentQuantity);
+    
+    if (!validation.isValid) {
+      // Show appropriate error message
+      const productName = product.productDetail || product.serviceName || product.name;
+      
+      switch (validation.reason) {
+        case 'maximum_reached':
+          toast.error(`Maximum quantity reached for ${productName}. You already have ${currentQuantity} in your cart.`, {
+            duration: 3000,
+            position: 'bottom-right',
+          });
+          break;
+        case 'max_limit':
+          toast.error(`Maximum ${validation.maxAllowed} items allowed per product. You can add ${validation.availableToAdd} more.`, {
+            duration: 3000,
+            position: 'bottom-right',
+          });
+          break;
+        case 'stock_limit':
+          toast.error(`Only ${validation.maxAllowed} items available in stock. You can add ${validation.availableToAdd} more.`, {
+            duration: 3000,
+            position: 'bottom-right',
+          });
+          break;
+        default:
+          toast.error(`Cannot add more items to cart.`, {
+            duration: 3000,
+            position: 'bottom-right',
+          });
+      }
+      return false; // Indicate failure
+    }
+    
     dispatch({
       type: CART_ACTIONS.ADD_ITEM,
       payload: { product, quantity }
     });
     
-    toast.success(`${product.productDetail || product.serviceName || product.name} added to cart!`, {
+    const productName = product.productDetail || product.serviceName || product.name;
+    toast.success(`${productName} added to cart! (${currentQuantity + quantity}/${validation.maxAllowed})`, {
       duration: 2000,
       position: 'bottom-right',
       style: {
@@ -149,6 +243,8 @@ export const CartProvider = ({ children }) => {
         color: 'white',
       },
     });
+    
+    return true; // Indicate success
   };
 
   const removeFromCart = (id) => {
@@ -164,10 +260,25 @@ export const CartProvider = ({ children }) => {
   };
 
   const updateQuantity = (id, quantity) => {
+    const item = state.items.find(item => item.id === id);
+    if (item) {
+      const maxAllowed = item.maxAllowed || MAX_QUANTITY_LIMIT;
+      
+      if (quantity > maxAllowed) {
+        toast.error(`Maximum ${maxAllowed} items allowed for this product.`, {
+          duration: 3000,
+          position: 'bottom-right',
+        });
+        return false;
+      }
+    }
+    
     dispatch({
       type: CART_ACTIONS.UPDATE_QUANTITY,
       payload: { id, quantity }
     });
+    
+    return true;
   };
 
   const clearCart = () => {
@@ -176,6 +287,21 @@ export const CartProvider = ({ children }) => {
       duration: 2000,
       position: 'bottom-right',
     });
+  };
+
+  // Helper function to get maximum quantity for a product
+  const getMaxQuantityForProduct = (productId) => {
+    const item = state.items.find(item => item.id === productId);
+    return item ? item.maxAllowed || MAX_QUANTITY_LIMIT : MAX_QUANTITY_LIMIT;
+  };
+
+  // Helper function to check if user can add more of a product
+  const canAddMoreOfProduct = (productId) => {
+    const item = state.items.find(item => item.id === productId);
+    if (!item) return true;
+    
+    const maxAllowed = item.maxAllowed || MAX_QUANTITY_LIMIT;
+    return item.quantity < maxAllowed;
   };
 
   // Cart calculations
@@ -239,8 +365,13 @@ export const CartProvider = ({ children }) => {
     isItemInCart,
     getItemQuantity,
     
+    // Quantity limits helpers
+    getMaxQuantityForProduct,
+    canAddMoreOfProduct,
+    
     // Constants
-    VAT_RATE: UAE_VAT_RATE
+    VAT_RATE: UAE_VAT_RATE,
+    MAX_QUANTITY_LIMIT
   };
 
   return (
@@ -250,7 +381,7 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use cart context
+// Hook to use cart context
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {

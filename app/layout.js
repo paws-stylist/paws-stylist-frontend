@@ -5,6 +5,13 @@ import Footer from '@/components/layout/Footer';
 import { ErrorProvider } from '@/contexts/ErrorContext';
 import { CartProvider } from '@/contexts/CartContext';
 import CartManager from '@/components/ui/CartManager';
+import { Playfair_Display } from 'next/font/google'
+import { MdMail } from 'react-icons/md';
+import { RiWhatsappFill } from "react-icons/ri";
+ 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+})
 
 export const metadata = {
   title: " PAWS STYLIST DOMESTIC PETS GROOMING L.L.C",
@@ -33,7 +40,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
       </head>
-      <body className={`font-step overflow-x-hidden w-screen`}>
+      <body className={`${playfair.className} overflow-x-hidden w-screen`}>
         <ErrorProvider>
           <CartProvider>
             <div className='sticky top-0 z-50'>
@@ -42,6 +49,12 @@ export default function RootLayout({ children }) {
             <div>
               {children}
             </div>
+            <a href="https://wa.me/0502666889" target="_blank" className='fixed bottom-24 right-6 z-50'>
+              <RiWhatsappFill className='text-6xl text-green-500' />
+            </a>
+            <a href="mailto:info@pawsstylist.com" target="_blank" className='fixed bottom-40 right-6 z-50'>
+              <MdMail className='text-6xl text-primary' />
+            </a>
             <div>
               <Footer />
             </div>
