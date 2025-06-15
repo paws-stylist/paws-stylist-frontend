@@ -205,15 +205,46 @@ export const useCreateCashOnDeliveryOrder = () => {
   });
 
   const createCashOnDeliveryOrder = useCallback(async (cartItems, customerInfo, billingAddress) => {
+    // Add debug logging to identify duplicate calls
+    console.log('🛒 Creating cash on delivery order...', {
+      timestamp: new Date().toISOString(),
+      customerName: customerInfo.name,
+      itemCount: cartItems.length
+    });
+
     try {
       const orderData = createOrderData(cartItems, customerInfo, billingAddress);
       // Override payment method and status for cash on delivery
       orderData.paymentMethod = 'cash_on_delivery';
       orderData.paymentStatus = 'pending';
       
+      console.log('📦 Order data prepared:', {
+        orderData: {
+          ...orderData,
+          // Don't log sensitive info, just structure
+          customerName: orderData.customerName,
+          email: orderData.email,
+          paymentMethod: orderData.paymentMethod,
+          totalAmount: orderData.totalAmount,
+          productCount: orderData.products.length
+        }
+      });
+      
       const response = await triggerCreateOrder(orderData);
+      
+      console.log('✅ Cash on delivery order created successfully:', {
+        orderId: response.data?._id || response.data?.id,
+        timestamp: new Date().toISOString()
+      });
+      
       return response;
     } catch (error) {
+      console.error('❌ Cash on delivery order creation failed:', {
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        customerName: customerInfo.name
+      });
+      
       toast.error('Failed to create order. Please try again.');
       throw error;
     }

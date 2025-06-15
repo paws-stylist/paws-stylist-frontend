@@ -1,0 +1,68 @@
+/* Cross-browser navbar positioning fixes */
+
+/* Ensure consistent fixed positioning across browsers */
+.navbar-fixed {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100% !important;
+  z-index: 40;
+  
+  /* Force hardware acceleration for smooth animations */
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  
+  /* Optimize for changes in top position */
+  -webkit-will-change: top;
+  -moz-will-change: top;
+  will-change: top;
+  
+  /* Smooth transitions across all browsers */
+  -webkit-transition: top 0.5s ease-in-out, background-color 0.5s ease-in-out, backdrop-filter 0.5s ease-in-out;
+  -moz-transition: top 0.5s ease-in-out, background-color 0.5s ease-in-out, backdrop-filter 0.5s ease-in-out;
+  -ms-transition: top 0.5s ease-in-out, background-color 0.5s ease-in-out, backdrop-filter 0.5s ease-in-out;
+  transition: top 0.5s ease-in-out, background-color 0.5s ease-in-out, backdrop-filter 0.5s ease-in-out;
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-backdrop-filter: none) {
+  .navbar-fixed {
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Firefox-specific fixes */
+@-moz-document url-prefix() {
+  .navbar-fixed {
+    /* Firefox doesn't support backdrop-filter well, use fallback */
+    background-color: rgba(17, 24, 39, 0.25) !important;
+  }
+}
+
+/* Prevent layout shifts */
+.navbar-fixed * {
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  backface-visibility: hidden;
+  
+  -webkit-perspective: 1000;
+  -moz-perspective: 1000;
+  perspective: 1000;
+}
+
+/* Ensure smooth scrolling performance */
+body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for Safari iOS */
+@supports (-webkit-touch-callout: none) {
+  .navbar-fixed {
+    /* iOS Safari fix for fixed positioning during scroll */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+} 

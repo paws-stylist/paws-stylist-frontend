@@ -64,7 +64,7 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
     loading, 
     error: paymentError 
   } = useCompletePaymentFlow();
-  const { createCashOnDeliveryOrder } = useCreateCashOnDeliveryOrder();
+  const { createCashOnDeliveryOrder, loading: cashOnDeliveryLoading } = useCreateCashOnDeliveryOrder();
 
   // Get cities and emirates from backend config or fallback to hardcoded ones
   const supportedCities = paymentConfig?.data?.businessInfo?.supportedCities || UAE_CITIES;
@@ -94,6 +94,7 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
   const [showCardError, setShowCardError] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isProcessingCashOrder, setIsProcessingCashOrder] = useState(false);
   const maxRetries = 2;
 
   const handleInputChange = (e) => {
@@ -292,13 +293,24 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
   const handleCashOnDelivery = async () => {
     if (!validateStep1()) return;
     
+    // Prevent multiple clicks/calls - check both hook loading and local state
+    if (cashOnDeliveryLoading || isProcessingCashOrder) {
+      console.log('⚠️ Cash on delivery order already in progress, ignoring duplicate call');
+      return;
+    }
+    
+    setIsProcessingCashOrder(true);
+    
     try {
+      console.log('🚀 Starting cash on delivery order process...');
+      
       const orderResponse = await createCashOnDeliveryOrder(
         items,
         formData.customerInfo,
         formData.billingAddress
       );
 
+      console.log('🎉 Cash on delivery order completed, clearing cart...');
       clearCart();
       toast.success('Order placed successfully! You will pay on delivery.');
       
@@ -310,8 +322,10 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
         });
       }
     } catch (error) {
-      console.error('Cash on delivery error:', error);
+      console.error('💥 Cash on delivery error:', error);
       toast.error('Failed to place order. Please try again.');
+    } finally {
+      setIsProcessingCashOrder(false);
     }
   };
 
@@ -586,9 +600,16 @@ const PaymentForm = ({ onSuccess, onCancel, onBack, paymentConfig }) => {
                 type="button"
                 variant="outline"
                 onClick={handleCashOnDelivery}
-                disabled={loading || processingPayment}
+                disabled={loading || processingPayment || cashOnDeliveryLoading || isProcessingCashOrder}
               >
-                Pay Cash On Delivery
+                {(cashOnDeliveryLoading || isProcessingCashOrder) ? (
+                  <div className="flex items-center">
+                    <FaSpinner className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </div>
+                ) : (
+                  'Pay Cash On Delivery'
+                )}
               </Button>
               <Button
                 type="button"
