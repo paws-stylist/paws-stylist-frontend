@@ -11,14 +11,14 @@ const featuredShops = [
         image: "/shops/grooming.webp",
         link: "/services/grooming"
     },
+    // {
+    //     id: 2,
+    //     name: "Medical",
+    //     image: "/shops/medical.webp",
+    //     link: "/services/medical"
+    // },
     {
         id: 2,
-        name: "Medical",
-        image: "/shops/medical.webp",
-        link: "/services/medical"
-    },
-    {
-        id: 3,
         name: "Day Care",
         image: "/shops/daycare.webp",
         link: "/services/daycare"

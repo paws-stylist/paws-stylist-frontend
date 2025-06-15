@@ -7,8 +7,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Container from '@/components/ui/Container';
 import NavSidebar from "./NavSidebar";
 import SearchBar from "./SearchBar";
+import NavCartButton from "../ui/NavCartButton";
+import CartDrawer from "../ui/CartDrawer";
+import CheckoutForm from "../ui/CheckoutForm";
 import { useGet } from "@/hooks/useApi";
 import Button from "../ui/Button";
+import "../../styles/navbar-fixes.css";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -17,6 +21,8 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // Fetch data from backend
   const { data: serviceCategories, loading: servicesLoading } = useGet('/service-categories/active', { 
@@ -98,8 +104,20 @@ const Navbar = () => {
       setScrolled(currentScrollY > 50);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    // Throttle scroll events for better cross-browser performance
+    let ticking = false;
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", throttledHandleScroll);
   }, [lastScrollY]);
 
   const toggleSearch = () => {
@@ -123,13 +141,39 @@ const Navbar = () => {
   // Show loading state while fetching navigation data
   const isLoading = servicesLoading || productCategoriesLoading;
 
+  // Cart handlers
+  const handleOpenCart = () => {
+    setIsCartOpen(true);
+  };
+
+  const handleCloseCart = () => {
+    setIsCartOpen(false);
+  };
+
+  const handleOpenCheckout = () => {
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleCloseCheckout = () => {
+    setIsCheckoutOpen(false);
+  };
+
+  const handleCheckoutSuccess = (paymentData) => {
+    console.log('Checkout successful:', paymentData);
+    setIsCheckoutOpen(false);
+  };
+
   return (
     <>
       {/* <SearchBar isOpen={searchOpen} onClose={() => setSearchOpen(false)} /> */}
       <header 
-        className={`fixed w-full lg:px-32 md:px-16 px-4 z-40 transition-all duration-500 ${
-          isScrollingUp ? 'translate-y-0' : '-translate-y-full'
-        } ${scrolled ? 'bg-gray-900/20 backdrop-blur-md' : 'bg-transparent'}`}
+        className={`navbar-fixed lg:px-32 md:px-16 px-4 ${
+          scrolled ? 'bg-gray-900/20 backdrop-blur-md' : 'bg-transparent'
+        }`}
+        style={{
+          top: isScrollingUp ? '0' : '-100%',
+        }}
       >
         {/* Top Bar */}
         <Container>
@@ -152,7 +196,7 @@ const Navbar = () => {
                 </div>
                 {/* <div className="flex items-center space-x-2">
                   <MdBusiness className="w-4 h-4 text-cream-50 hover:text-primary transition-colors" />
-                  <span className="text-xs font-medium"> بوس  ستيلسة  دمستك  بطس  غرومينج  لك </span>
+                  <span className="text-xs font-medium"> بوس  ستيلسة  دمستك  بطس  غرومينج  لك </span>
                 </div> */}
                 <div className="flex items-center space-x-2">
                   <MdEmail className="w-4 h-4 text-secondary hover:text-primary transition-colors" />
@@ -171,14 +215,17 @@ const Navbar = () => {
               <img src="/logo.png" alt="PAWS" className="h-12" />
             </Link> */}
 
-            {/* Right Side - Search */}
-            <a href="/services">
-              <Button 
-                variant="primary"
-              >
-                Book Appointment
-              </Button>
-            </a>
+            {/* Right Side - Cart and Book Appointment */}
+            <div className="flex items-center space-x-3">
+              <NavCartButton onOpenCart={handleOpenCart} />
+              <a href="/services">
+                <Button 
+                  variant="primary"
+                >
+                  Book Appointment
+                </Button>
+              </a>
+            </div>
           </div>
         </Container>
 
@@ -247,6 +294,21 @@ const Navbar = () => {
         onClose={() => setMenuOpen(false)} 
         navData={navbarData}
         isLoading={isLoading}
+        onOpenCart={handleOpenCart}
+      />
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={handleCloseCart}
+        onCheckout={handleOpenCheckout}
+      />
+
+      {/* Checkout Form */}
+      <CheckoutForm
+        isOpen={isCheckoutOpen}
+        onClose={handleCloseCheckout}
+        onSuccess={handleCheckoutSuccess}
       />
     </>
   );

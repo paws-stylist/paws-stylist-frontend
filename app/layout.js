@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer';
 import { ErrorProvider } from '@/contexts/ErrorContext';
 import { CartProvider } from '@/contexts/CartContext';
 import CartManager from '@/components/ui/CartManager';
+import FloatingActionButton from '@/components/ui/FloatingActionButton';
 import { Playfair_Display } from 'next/font/google'
 import { MdMail } from 'react-icons/md';
 import { RiWhatsappFill } from "react-icons/ri";
@@ -49,12 +50,28 @@ export default function RootLayout({ children }) {
             <div>
               {children}
             </div>
-            <a href="https://wa.me/0502666889" target="_blank" className='fixed bottom-24 right-6 z-50'>
-              <RiWhatsappFill className='text-6xl text-green-500' />
-            </a>
-            <a href="mailto:info@pawsstylist.com" target="_blank" className='fixed bottom-40 right-6 z-50'>
-              <MdMail className='text-6xl text-primary' />
-            </a>
+            
+            {/* Floating Action Buttons */}
+            <FloatingActionButton
+              icon="whatsapp"
+              href="https://wa.me/0502666889"
+              bgColor="bg-green-500"
+              hoverBgColor="hover:bg-green-600"
+              position="bottom-6 right-6"
+              tooltip="Chat on WhatsApp"
+              iconSize="text-3xl"
+            />
+            
+            <FloatingActionButton
+              icon="email"
+              href="mailto:info@pawsstylist.com"
+              bgColor="bg-primary"
+              hoverBgColor="hover:bg-primary-600"
+              position="bottom-24 right-6"
+              tooltip="Send us an email"
+              iconSize="text-3xl"
+            />
+            
             <div>
               <Footer />
             </div>

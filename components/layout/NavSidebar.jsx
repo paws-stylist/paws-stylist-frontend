@@ -4,8 +4,9 @@ import { FiX, FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { MdEmail, MdBusiness } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import NavCartButton from "../ui/NavCartButton";
 
-export default function NavSidebar({ isOpen, onClose, navData = [], isLoading = false }) {
+export default function NavSidebar({ isOpen, onClose, navData = [], isLoading = false, onOpenCart }) {
   const [expandedItems, setExpandedItems] = useState({});
 
   const toggleExpanded = (itemName) => {
@@ -42,12 +43,26 @@ export default function NavSidebar({ isOpen, onClose, navData = [], isLoading = 
                 <Link href="/" onClick={onClose}>
                   <img src="/logo.png" alt="PAWS" className="h-14" />
                 </Link>
-                <button
-                  onClick={onClose}
-                  className="text-gray-800 hover:text-primary transition-colors"
-                >
-                  <FiX className="w-6 h-6" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  {/* Cart Button for Mobile */}
+                  {onOpenCart && (
+                    <div className="bg-gray-800 rounded-lg">
+                      <NavCartButton 
+                        onOpenCart={() => {
+                          onOpenCart();
+                          onClose();
+                        }}
+                        className="text-white hover:text-primary"
+                      />
+                    </div>
+                  )}
+                  <button
+                    onClick={onClose}
+                    className="text-gray-800 hover:text-primary transition-colors"
+                  >
+                    <FiX className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
 
               {/* Navigation Links */}
